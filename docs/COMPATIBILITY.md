@@ -1,4 +1,4 @@
-# Compatibility and 1.1.0 draft status
+# Compatibility and 1.1.1 draft status
 
 | Component | Windows release candidate |
 | --- | --- |

@@ -3,104 +3,15 @@ import copy
 import threading
 import uuid
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QButtonGroup
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QButtonGroup, QStackedWidget
 from desktop_ui import make_page, card, label, push
 from ui_controls import SelectionList, ToggleSwitch, confirm_dialog
-from i18n import tr
+from i18n import tr, language
+from ui_icons import icon, badge, application_icon
 
 
-def user_label(text=""):
-    widget = label(text,"muted")
-    widget.setProperty("i18nUserText",True)
-    return widget
-
-
-class WindowsPage(QWidget):
-    def __init__(self, window):
-        super().__init__()
-        self.owner = window
-        self.role = "mywhoosh"
-        self.available = []
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0,0,0,0)
-        page,box = make_page("Windows",action=push("Refresh",self.reload))
-        layout.addWidget(page)
-        surface,content = card()
-        content.setContentsMargins(20,18,20,18)
-        box.addWidget(surface,1)
-        roles = QHBoxLayout()
-        self.role_buttons = {}
-        group = QButtonGroup(self)
-        for role,title in (("mywhoosh","MyWhoosh"),("video","Video")):
-            button = push(title,lambda _=False,r=role:self.choose_role(r))
-            button.setCheckable(True)
-            group.addButton(button)
-            roles.addWidget(button)
-            self.role_buttons[role] = button
-        content.addLayout(roles)
-        self.summary = user_label()
-        self.summary.setAccessibleName("Selected window")
-        content.addWidget(self.summary)
-        self.list = SelectionList()
-        self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.list.setTextElideMode(Qt.TextElideMode.ElideRight)
-        self.list.setAccessibleName("Open windows")
-        self.list.currentItemChanged.connect(lambda *_:self.select_button.setEnabled(self.list.currentRow() >= 0))
-        content.addWidget(self.list,1)
-        controls = QHBoxLayout()
-        self.select_button = push("Use selected window",self.select,True)
-        self.select_button.setEnabled(False)
-        controls.addWidget(self.select_button)
-        controls.addWidget(push("Switch windows",lambda:window.launch(self.test())))
-        content.addLayout(controls)
-        content.addWidget(label("Keep keyboard focus on the video player inside the selected browser window.","muted"))
-        self.result = label("","muted")
-        content.addWidget(self.result)
-        self.role_buttons[self.role].setChecked(True)
-
-    def choose_role(self, role):
-        self.role = role
-        self.role_buttons[role].setChecked(True)
-        self.update_summary()
-
-    def update_summary(self):
-        identity = self.owner.controller.config["windows"].get(self.role)
-        title = identity["title"] if identity else tr("No window selected")
-        if identity:
-            try:
-                self.owner.controller.windows.target(self.role,self.owner.controller.config)
-            except RuntimeError:
-                title += " · " + tr("Select again")
-        self.summary.setText(title)
-
-    def reload(self):
-        try:
-            self.available = self.owner.controller.windows.native.list()
-            self.list.clear()
-            for win in self.available:
-                self.list.addItem(win.title)
-            self.select_button.setEnabled(False)
-            self.update_summary()
-        except (RuntimeError,OSError) as exc:
-            self.result.setText(str(exc))
-
-    def select(self):
-        index = self.list.currentRow()
-        if index < 0:
-            return
-        window = self.available[index]
-        config = copy.deepcopy(self.owner.controller.config)
-        config["windows"][self.role] = window.identity()
-        try:
-            self.owner.controller.save(config)
-            self.owner.controller.windows.select(self.role,window)
-            self.update_summary()
-        except (RuntimeError,OSError,ValueError) as exc:
-            self.result.setText(str(exc))
-
-    async def test(self):
-        await self.owner.controller.windows.run("switch_windows",copy.deepcopy(self.owner.controller.config))
+from window_view import WindowsPage
 
 
 class RoutinesPage(QWidget):
@@ -108,6 +19,7 @@ class RoutinesPage(QWidget):
         super().__init__()
         self.owner = window
         self.ident = None
+        self.rendered_language = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0,0,0,0)
         page,box = make_page("Routines",action=push("New routine",self.new,True))
@@ -116,15 +28,40 @@ class RoutinesPage(QWidget):
         content.setContentsMargins(18,16,18,16)
         content.setSpacing(10)
         box.addWidget(surface,1)
-        columns = QHBoxLayout()
+        self.stack = QStackedWidget()
+        content.addWidget(self.stack,1)
+        overview = QWidget()
+        overview_box = QVBoxLayout(overview)
+        overview_box.setContentsMargins(0,0,0,0)
+        self.stack.addWidget(overview)
         self.list = SelectionList()
-        self.list.setMaximumWidth(190)
+        self.list.setIconSize(QSize(38,38))
+        self.list.setStyleSheet("QListWidget {background:white;border:0;padding:0;} QListWidget::item {padding:14px;margin-bottom:7px;background:#f6f8f8;}")
         self.list.setAccessibleName("Saved routines")
         self.list.currentItemChanged.connect(self.selection)
-        columns.addWidget(self.list,1)
+        overview_box.addWidget(self.list,1)
+        self.empty = QWidget()
+        empty_box = QVBoxLayout(self.empty)
+        empty_box.addStretch()
+        empty_box.addWidget(badge("routine",56),alignment=Qt.AlignmentFlag.AlignCenter)
+        empty_title = label("No saved routines","muted")
+        empty_title.setMinimumSize(280,40)
+        empty_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_box.addWidget(empty_title,alignment=Qt.AlignmentFlag.AlignCenter)
+        empty_box.addStretch()
+        overview_box.addWidget(self.empty,1)
+        overview_controls = QHBoxLayout()
+        self.edit_button = push("Edit",lambda:self.stack.setCurrentIndex(1))
+        self.test = push("Test",lambda:window.launch(self.run()))
+        self.delete = push("Delete",self.remove)
+        for button in (self.edit_button,self.test,self.delete):
+            overview_controls.addWidget(button)
+        overview_controls.addStretch()
+        overview_box.addLayout(overview_controls)
         self.form = QWidget()
+        self.stack.addWidget(self.form)
         form = QVBoxLayout(self.form)
-        form.setContentsMargins(12,0,0,0)
+        form.setContentsMargins(8,0,8,0)
         form.setSpacing(9)
         self.name = QLineEdit()
         self.name.setMaxLength(60)
@@ -139,6 +76,7 @@ class RoutinesPage(QWidget):
             button = push(title,lambda _=False,a=action:self.set_template(a))
             button.setCheckable(True)
             button.setObjectName("choice")
+            button.setIcon(icon({"show":"window","video":"forward","mouse_position":"click"}[action]))
             group.addButton(button)
             template_row.addWidget(button)
             self.templates[action] = button
@@ -166,10 +104,13 @@ class RoutinesPage(QWidget):
             self.seek[action] = button
         form.addWidget(self.video_options)
         self.points = SelectionList()
+        self.points.setIconSize(QSize(22,22))
         self.points.setMaximumHeight(85)
         self.points.setAccessibleName("Saved mouse position")
         self.points.currentItemChanged.connect(lambda *_:self.update_controls())
         form.addWidget(self.points)
+        self.no_points = label("No saved positions. Add one in Mouse positions.","muted")
+        form.addWidget(self.no_points)
         self.return_previous = ToggleSwitch("Return to previous window")
         self.return_previous.toggled.connect(self.update_controls)
         form.addWidget(self.return_previous)
@@ -178,26 +119,33 @@ class RoutinesPage(QWidget):
         form.addWidget(self.hint)
         controls = QHBoxLayout()
         self.save = push("Save",self.persist,True)
-        self.test = push("Test",lambda:window.launch(self.run()))
-        self.delete = push("Delete",self.remove)
-        for button in (self.save,self.test,self.delete):
-            controls.addWidget(button)
+        controls.addWidget(push("Cancel",self.finish))
+        controls.addStretch()
+        controls.addWidget(self.save)
         form.addLayout(controls)
         self.result = label("","muted")
-        form.addWidget(self.result)
+        content.addWidget(self.result)
         form.addStretch()
-        columns.addWidget(self.form,3)
-        content.addLayout(columns,1)
         self.template = "show"
         self.new()
+        self.stack.setCurrentIndex(0)
 
     def reload(self, selected=None):
+        self.rendered_language = language()
         selected = selected or self.ident
         self.list.blockSignals(True)
         self.list.clear()
         for ident,routine in self.owner.controller.config["routines"].items():
-            self.list.addItem(routine["name"])
+            role = routine["target"]
+            target = "MyWhoosh" if role == "mywhoosh" else "Video"
+            action = {"show":"Show window","seek_back":"Seek backward","seek_forward":"Seek forward","mouse_position":"Click position"}[routine["action"]]
+            summary = tr(target) + " · " + tr(action)
+            if routine["return"]:
+                summary += " · " + tr("Return")
+            self.list.addItem(routine["name"] + "\n" + summary)
             item = self.list.item(self.list.count()-1)
+            identity = self.owner.controller.config["windows"].get(role,{})
+            item.setIcon(application_icon(identity["path"]) if identity else icon("routine"))
             item.setData(Qt.ItemDataRole.UserRole,ident)
             if ident == selected:
                 self.list.setCurrentItem(item)
@@ -210,11 +158,23 @@ class RoutinesPage(QWidget):
         for ident,point in self.owner.controller.config["positions"].items():
             self.points.addItem(point["name"])
             item = self.points.item(self.points.count()-1)
+            item.setIcon(icon("position"))
             item.setData(Qt.ItemDataRole.UserRole,ident)
             if ident == point_id:
                 self.points.setCurrentItem(item)
         self.points.blockSignals(False)
+        for role,button in self.targets.items():
+            identity = self.owner.controller.config["windows"].get(role)
+            button.setIcon(application_icon(identity["path"]) if identity else icon("window"))
+        self.list.setVisible(bool(self.list.count()))
+        self.empty.setVisible(not self.list.count())
+        if self.stack.currentIndex() == 0 and self.list.currentItem():
+            self.selection(self.list.currentItem())
         self.update_controls()
+
+    def finish(self):
+        self.stack.setCurrentIndex(0)
+        self.reload(self.ident)
 
     def new(self):
         self.ident = None
@@ -224,6 +184,7 @@ class RoutinesPage(QWidget):
         self.seek["seek_forward"].setChecked(True)
         self.return_previous.setChecked(True)
         self.set_template("show")
+        self.stack.setCurrentIndex(1)
 
     def selection(self, item, _previous=None):
         if item is None:
@@ -255,9 +216,12 @@ class RoutinesPage(QWidget):
         if not hasattr(self,"save") or not hasattr(self,"template"):
             return
         valid = bool(self.name.text().strip()) and (self.template != "mouse_position" or self.points.currentItem() is not None)
+        self.points.setVisible(self.template == "mouse_position" and self.points.count() > 0)
+        self.no_points.setVisible(self.template == "mouse_position" and self.points.count() == 0)
         self.save.setEnabled(valid)
         self.test.setEnabled(bool(self.ident) and self.draft() == self.owner.controller.config["routines"].get(self.ident))
         self.delete.setEnabled(bool(self.ident))
+        self.edit_button.setEnabled(bool(self.ident))
 
     def draft(self):
         action = next((a for a,b in self.seek.items() if b.isChecked()),"seek_forward") if self.template == "video" else self.template
@@ -273,6 +237,7 @@ class RoutinesPage(QWidget):
             self.owner.controller.save(config)
             self.ident = ident
             self.reload(ident)
+            self.stack.setCurrentIndex(0)
             self.owner.load_bindings()
             self.result.setText("Saved")
         except (ValueError,OSError) as exc:
@@ -303,6 +268,7 @@ class RoutinesPage(QWidget):
             self.owner.controller.save(config)
             self.new()
             self.reload()
+            self.stack.setCurrentIndex(0)
             self.owner.load_bindings()
         except (ValueError,OSError) as exc:
             self.result.setText(str(exc))

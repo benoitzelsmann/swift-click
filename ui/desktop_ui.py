@@ -6,6 +6,7 @@ from PySide6.QtCore import (
     Qt,
     QRectF,
     Signal,
+    QSize,
 )
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import (
@@ -629,6 +630,11 @@ def make_page(title, subtitle="", action=None):
     layout.setContentsMargins(32, 28, 32, 28)
     layout.setSpacing(24)
     heading = QHBoxLayout()
+    from ui_icons import badge
+    symbol = {"Mouse positions":"position","Windows":"windows","Routines":"routine"}.get(title)
+    if symbol:
+        heading.addWidget(badge(symbol))
+        heading.addSpacing(4)
     heading.addWidget(label(title, "title"), 1)
     if action is not None:
         heading.addWidget(action)
@@ -640,7 +646,7 @@ def make_page(title, subtitle="", action=None):
 
 PAGE_DASHBOARD, PAGE_MYWHOOSH, PAGE_CONTROLLER, PAGE_MOUSE, PAGE_BUTTONS, PAGE_GENERAL, PAGE_CREDITS, PAGE_CONTACT = range(8)
 PAGE_WINDOWS, PAGE_ROUTINES = 8,9
-PAGE_SECTIONS = (0, 1, 1, 2, 2, 2, 2, 2, 3, 3)
+PAGE_SECTIONS = (0, 1, 1, 3, 2, 2, 2, 2, 3, 3)
 
 
 def scroll_page(page):
@@ -673,7 +679,7 @@ def build_ui(w):
     nav.addStretch()
     w.pages = QStackedWidget()
     w.nav = []
-    w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS, 3:PAGE_WINDOWS}
+    w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS, 3:PAGE_MOUSE}
     for index, name in enumerate(("Dashboard", "Connections", "Settings", "Actions")):
         item = push(name, lambda _=False, i=index: show_section(w, i))
         item.setObjectName("nav")
@@ -687,8 +693,9 @@ def build_ui(w):
     subnav.setContentsMargins(32, 6, 32, 6)
     w.subnav = {}
     for target, name in ((PAGE_CONTROLLER, "Controller"), (PAGE_MYWHOOSH, "MyWhoosh"),
-                         (PAGE_BUTTONS, "Buttons"), (PAGE_MOUSE, "Mouse positions"),
+                         (PAGE_BUTTONS, "Buttons"),
                          (PAGE_GENERAL, "General"), (PAGE_CREDITS, "Credits"), (PAGE_CONTACT, "Contact"),
+                         (PAGE_MOUSE, "Mouse positions"),
                          (PAGE_WINDOWS,"Windows"),(PAGE_ROUTINES,"Routines")):
         item = push(name, lambda _=False, i=target: show_page(w, i))
         item.setObjectName("subnavButton")
@@ -708,10 +715,23 @@ def build_ui(w):
     for index, name in enumerate(("MyWhoosh", "Controller")):
         row = QHBoxLayout()
         row.setContentsMargins(0, 20, 0, 20)
+        from ui_icons import badge, icon
+        picture = badge("window" if index == 0 else "controller")
+        if index == 0:
+            from PySide6.QtGui import QIcon
+            picture.set_icon(QIcon(str(Path(__file__).with_name("assets")/"mywhoosh.png")))
+        row.addWidget(picture)
+        row.addSpacing(10)
         row.addWidget(label(name, size=16), 1)
         state = label("Not connected" if index == 0 else "Not connected")
         state.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         row.addWidget(state)
+        if index == 0:
+            w.open_game_button = push("Open MyWhoosh",lambda:w.launch(w.open_mywhoosh()))
+            w.open_game_button.setIcon(icon("open"))
+            w.open_game_button.setIconSize(QSize(18,18))
+            row.addSpacing(12)
+            row.addWidget(w.open_game_button)
         w.dashboard_states.append(state)
         summary_box.addLayout(row)
         if index == 0:
@@ -720,13 +740,6 @@ def build_ui(w):
             divider.setFixedHeight(1)
             summary_box.addWidget(divider)
     box.addWidget(summary)
-    shortcuts = QHBoxLayout()
-    shortcuts.addWidget(push("Windows",lambda:show_page(w,PAGE_WINDOWS)))
-    shortcuts.addWidget(push("Routines",lambda:show_page(w,PAGE_ROUTINES)))
-    shortcuts.addStretch()
-    box.addLayout(shortcuts)
-    w.action_result = label("","muted")
-    box.addWidget(w.action_result)
     box.addStretch()
     w.pages.addWidget(page)
 
@@ -856,8 +869,13 @@ def show_page(w, index):
 
 
 def refresh_ui(w):
-    w.action_result.setText(w.controller.windows.result)
+    if w.routines_page.rendered_language != language():
+        w.routines_page.reload()
+    if w.windows_page.rendered_language != language():
+        w.windows_page.reload()
     w.windows_page.result.setText(w.controller.windows.result)
+    w.open_game_button.setEnabled(not w.opening_game and not w.closing)
+    w.open_game_button.setText("Opening…" if w.opening_game else "Open MyWhoosh")
     running = bool(w.service_task and not w.service_task.done())
     w.start_button.setEnabled(not running and not w.stopping)
     w.start_button.setText(

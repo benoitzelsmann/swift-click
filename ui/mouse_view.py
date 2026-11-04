@@ -11,6 +11,8 @@ import mouse_controls
 from desktop_ui import card, label, push, make_page, show_page, PAGE_BUTTONS
 from ui_controls import SelectionList, CountdownOverlay, confirm_dialog
 from i18n import tr
+from ui_icons import icon
+from PySide6.QtCore import QSize
 
 
 class MousePage(QWidget):
@@ -44,6 +46,7 @@ class MousePage(QWidget):
         sidebar_box.setContentsMargins(12,12,12,12)
         columns.addWidget(sidebar,1)
         self.list = SelectionList()
+        self.list.setIconSize(QSize(26,26))
         self.list.setObjectName("positions")
         self.list.currentRowChanged.connect(self.selection)
         self.position_pages = QStackedWidget()
@@ -52,6 +55,7 @@ class MousePage(QWidget):
         empty_box.setContentsMargins(24,20,24,20)
         empty_box.addStretch()
         empty_title = label("No saved positions", "muted")
+        empty_title.setMinimumHeight(50)
         empty_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_box.addWidget(empty_title)
         empty_box.addStretch()
@@ -75,6 +79,8 @@ class MousePage(QWidget):
         self.summary_title.setProperty("i18nUserText", True)
         summary_box.addWidget(self.summary_title)
         self.summary_details = label("","muted")
+        from ui_icons import badge
+        summary_box.insertWidget(0,badge("position"))
         summary_box.addWidget(self.summary_details)
         self.rename = push("Rename",self.begin_rename)
         summary_box.addWidget(self.rename,alignment=Qt.AlignmentFlag.AlignLeft)
@@ -138,6 +144,7 @@ class MousePage(QWidget):
         for ident,point in self.points().items():
             self.list.addItem(point["name"])
             item = self.list.item(self.list.count()-1)
+            item.setIcon(icon("position"))
             item.setData(Qt.ItemDataRole.UserRole,ident)
             if ident == selected:
                 self.list.setCurrentItem(item)

@@ -1,6 +1,7 @@
 # This repository contains UI sources and documentation only.
 app.py
 app_paths.py
+app_launcher.py
 controller.py
 controller.json
 controller.pre-v2.json

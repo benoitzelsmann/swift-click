@@ -12,6 +12,8 @@ Selecting a window reads the titles and application paths of open windows. Only
 the two selected application identities and titles are saved locally, along with
 named routine settings. Temporary window handles stay in memory for the session.
 They are not uploaded. No browser page contents are read.
+The Open MyWhoosh button looks up MyWhoosh's local Start-menu registration. It
+does not send an installation inventory to a server.
 
 The interface language and expanded-guide choices are also saved locally. Contact
 links open the user's browser or email application only when selected.
