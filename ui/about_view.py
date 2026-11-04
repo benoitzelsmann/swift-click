@@ -7,9 +7,9 @@ from urllib.parse import quote
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QComboBox
+from language_picker import LanguagePicker
 
-from i18n import LANGUAGES, language
+from i18n import language
 
 
 def metadata():
@@ -32,10 +32,8 @@ def build_about_pages(w):
     surface, content = card()
     box.addWidget(surface)
     content.addWidget(label("Language", size=18))
-    w.language_select = QComboBox()
+    w.language_select = LanguagePicker()
     w.language_select.setAccessibleName("Language")
-    for code, name in LANGUAGES.items():
-        w.language_select.addItem(name, code)
     w.language_select.setCurrentIndex(w.language_select.findData(language()))
     w.language_select.currentIndexChanged.connect(lambda _: w.change_language(w.language_select.currentData()))
     content.addWidget(w.language_select)

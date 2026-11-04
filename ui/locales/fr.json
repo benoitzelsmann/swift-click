@@ -269,5 +269,7 @@
   "Not assigned": "Non affectée",
   "Used by {gestures}": "Utilisée par {gestures}",
   "{count} actions, {used} assigned": "{count} actions, {used} affectées",
-  "Swift Click is already open. Quit the existing window before opening this build ({version}).": "Swift Click est déjà ouvert. Quittez la fenêtre existante avant d’ouvrir cette version ({version})."
+  "Swift Click is already open. Quit the existing window before opening this build ({version}).": "Swift Click est déjà ouvert. Quittez la fenêtre existante avant d’ouvrir cette version ({version}).",
+  "Select a saved position.": "Sélectionnez une position enregistrée.",
+  "No saved positions. Create one below.": "Aucune position enregistrée. Créez-en une ci-dessous."
 }

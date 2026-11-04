@@ -33,18 +33,20 @@ Base already removes the daily button-action limit. Pro is not required simply t
 - Control Windows volume, play/pause and previous/next tracks.
 - Send left/right arrow presses to the active video player.
 - Click at the current pointer position or at named points saved on your displays.
-- Switch between English and French under **Settings → General**, without restarting connections.
+- Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
 
 No browser extension, Swift Click account or telemetry is required. Browser video controls depend on the active player and its keyboard focus. Named clicks require the target window to remain in the saved position.
 
 ![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
 
+![Flag buttons for English and French](docs/images/languages.png)
+
 ## Download and install
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-Initial releases are unsigned betas. Windows security settings may warn about or block them. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.0.0 package is an unsigned release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Updates use the same installer and preserve settings, except for the one-time 0.15 button-mapping reset described in the installation guide. Updates are downloaded and installed manually. There is no automatic updater in this release.
 

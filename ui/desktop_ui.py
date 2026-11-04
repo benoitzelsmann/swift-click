@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
 )
 from settings import ACTIONS, ASSIGNABLE, REPEATABLE, action_id
 from ui_controls import KeyboardButton, ToggleSwitch, SelectionList
-from i18n import tr
+from i18n import tr, language
 
 ACTION_GROUPS = {
     "MyWhoosh": ("shift_up", "shift_down"),
@@ -33,7 +33,6 @@ ACTION_GROUPS = {
     "Video": ("seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
 }
-from i18n import tr
 
 COLORS = {
     "y": "#00a8df",
@@ -43,7 +42,7 @@ COLORS = {
     "plus": "#253246",
 }
 STYLE = """
-QWidget { color:#18202b; font-family:'Segoe UI'; font-size:13px; }
+QWidget { color:#18202b; font-family:'Segoe UI'; font-size:14px; }
 QMainWindow, QWidget#shell, QWidget#page { background:#f4f5f7; }
 QFrame#header { background:white; border-bottom:1px solid #e5e7ed; }
 QPushButton#assignment { background:#f5f6f8; border:1px solid transparent; border-radius:5px; padding:4px 7px; font-weight:500; }
@@ -56,10 +55,10 @@ QPushButton#category:hover { background:#edf0f4; border-color:#b8c2ce; }
 QLabel#brand { font-size:18px; font-weight:700; }
 QLabel#title { font-size:24px; font-weight:700; }
 QLabel#muted { color:#626d7c; }
-QFrame#card { background:white; border:1px solid #e1e5eb; border-radius:8px; }
+QFrame#card { background:white; border:1px solid #e1e5eb; border-radius:12px; }
 QFrame#binding { background:transparent; border:1px solid transparent; border-radius:6px; }
 QFrame#binding[selected="true"] { background:#edf6f2; border-color:#86b6a5; }
-QPushButton { background:white; border:1px solid #dfe3e9; border-radius:6px; padding:8px 16px; font-weight:600; }
+QPushButton { background:white; border:1px solid #dfe3e9; border-radius:8px; padding:8px 16px; font-weight:600; }
 QPushButton:hover { background:#f1f3f8; border-color:#c0c8d7; }
 QPushButton:pressed { background:#e7ebf3; }
 QPushButton#primary { background:#202632; color:white; border:1px solid #202632; }
@@ -124,16 +123,7 @@ def card():
 
 
 def logo(size=64):
-    widget = QLabel()
-    pix = QPixmap(str(Path(__file__).with_name("assets") / "mywhoosh.png"))
-    widget.setPixmap(
-        pix.scaled(
-            size,
-            size,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation,
-        )
-    )
+    widget = ControllerImage("mywhoosh.png", "MyWhoosh")
     widget.setFixedSize(size, size)
     return widget
 
@@ -172,10 +162,10 @@ class AssignmentButton(KeyboardButton):
 
 
 class ControllerImage(QWidget):
-    def __init__(self):
+    def __init__(self, source="click-right.png", accessible_name="Right-hand Zwift Click V2 controller"):
         super().__init__()
-        self.image = QPixmap(str(Path(__file__).with_name("assets") / "click-right.png"))
-        self.setAccessibleName("Right-hand Zwift Click V2 controller")
+        self.image = QPixmap(str(Path(__file__).with_name("assets") / source))
+        self.setAccessibleName(accessible_name)
 
     def paintEvent(self, event):
         if self.image.isNull():
@@ -228,13 +218,14 @@ class ControllerEditor(QWidget):
         choice_box.setContentsMargins(18, 16, 18, 16)
         choice_box.setSpacing(10)
         self.choice_title = label("", size=18)
+        self.choice_title.setProperty("i18nUserText", True)
         choice_box.addWidget(self.choice_title)
         self.current_assignment = label("","muted")
+        self.current_assignment.setProperty("i18nUserText",True)
         choice_box.addWidget(self.current_assignment)
         self.back_to_actions = push("Action types",self.show_actions)
         self.back_to_actions.setObjectName("quiet")
         self.back_to_actions.hide()
-        choice_box.addWidget(self.back_to_actions,alignment=Qt.AlignmentFlag.AlignLeft)
         self.pick_pages = QStackedWidget()
         choice_box.addWidget(self.pick_pages)
         categories = QWidget()
@@ -262,6 +253,8 @@ class ControllerEditor(QWidget):
         self.options = QButtonGroup(self)
         self.option_cells = {}
         self.usage_labels = {}
+        self.rendered_language = None
+        self.active_group = None
         for index, action in enumerate(ASSIGNABLE):
             option = KeyboardButton(ACTIONS[action][1])
             option.setObjectName("choice")
@@ -279,6 +272,7 @@ class ControllerEditor(QWidget):
                 cell_box.setSpacing(6)
                 cell_box.addWidget(option)
                 used = label("","muted")
+                used.setProperty("i18nUserText",True)
                 used.setStyleSheet("font-size:12px")
                 cell_box.addWidget(used)
                 self.usage_labels[action] = used
@@ -301,12 +295,12 @@ class ControllerEditor(QWidget):
         self.add_position = push("Create a position", self.create_position)
         self.add_position.setObjectName("quiet")
         positions_box.addWidget(self.add_position,alignment=Qt.AlignmentFlag.AlignLeft)
-        self.pending_label = label("","muted")
-        choice_box.addWidget(self.pending_label)
         controls = QHBoxLayout()
+        controls.addWidget(self.back_to_actions)
         controls.addWidget(push("Cancel",self.end_edit))
         controls.addStretch()
         self.save_button = push("Save",self.save_action,True)
+        self.save_button.setProperty("i18nUserTooltip",True)
         controls.addWidget(self.save_button)
         choice_box.addLayout(controls)
         choice_box.addStretch()
@@ -320,7 +314,7 @@ class ControllerEditor(QWidget):
     def edit_action(self, field):
         self.field = field
         self.pending = copy.deepcopy(field.action)
-        self.choice_title.setText(field.caption)
+        self.choice_title.setText(tr(field.caption))
         self.current_assignment.setText(tr("Current action: {action}").format(action=self.binding_text(field.action)))
         self.refresh_usage()
         self.show_actions()
@@ -338,8 +332,10 @@ class ControllerEditor(QWidget):
         self.pick_pages.setCurrentIndex(0)
         self.back_to_actions.hide()
         self.update_pending()
+        self.fit_stage()
 
     def show_group(self, group):
+        self.active_group = group
         self.choices_frame.setMinimumWidth(540)
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
@@ -354,6 +350,15 @@ class ControllerEditor(QWidget):
             cell.show()
         self.pick_pages.setCurrentIndex(1)
         self.back_to_actions.show()
+        self.fit_stage()
+
+    def fit_stage(self):
+        page = self.pick_pages.currentWidget()
+        if page.layout():
+            page.layout().invalidate()
+            page.layout().activate()
+        self.pick_pages.setFixedHeight(page.sizeHint().height())
+        self.choices_frame.updateGeometry()
 
     def binding_text(self, binding):
         if binding is None:
@@ -385,6 +390,11 @@ class ControllerEditor(QWidget):
         return tr("Used by {gestures}").format(gestures=summary)
 
     def refresh_usage(self):
+        self.rendered_language = language()
+        self.choice_title.setText(tr(self.field.caption))
+        self.current_assignment.setText(tr("Current action: {action}").format(action=self.binding_text(self.field.action)))
+        if self.active_group:
+            self.group_title.setText(tr(self.active_group))
         for action, used in self.usage_labels.items():
             used.setText(self.usage_text(action))
             used.setToolTip(", ".join(self.uses(action)))
@@ -395,8 +405,7 @@ class ControllerEditor(QWidget):
 
     def update_pending(self):
         self.save_button.setEnabled(self.pending is not None)
-        self.pending_label.setText(tr("Selected action: {action}").format(action=self.binding_text(self.pending)))
-        self.pending_label.setVisible(self.pending != self.field.action)
+        self.save_button.setToolTip(self.binding_text(self.pending))
 
     def apply_choice(self, option):
         action = option.property("action")
@@ -426,12 +435,13 @@ class ControllerEditor(QWidget):
         rows = sum(self.position_choices.sizeHintForRow(i) for i in range(min(2,count)))
         self.position_choices.setFixedHeight(max(1,rows+2*self.position_choices.frameWidth()))
         self.position_choices.setVisible(count > 0)
-        self.position_hint.setText("Choose a saved screen point for this gesture." if count else "Create a screen point to use for this gesture.")
+        self.position_hint.setText("Select a saved position." if count else "No saved positions. Create one below.")
         self.position_hint.show()
         self.pick_pages.setCurrentIndex(2)
         self.back_to_actions.show()
         self.add_position.show()
         self.update_pending()
+        self.fit_stage()
 
     def apply_position(self, item, _previous=None):
         if item is not None:
@@ -545,7 +555,7 @@ def build_ui(w):
     nav = QHBoxLayout(header)
     nav.setContentsMargins(32, 0, 32, 0)
     nav.addWidget(label("Swift Click", "brand"))
-    w.version_label = label(f"v{w.app_version} · UI {w.ui_revision}","muted")
+    w.version_label = label(f"v{w.app_version}","muted")
     w.version_label.setWordWrap(False)
     w.version_label.setStyleSheet("font-size:11px")
     nav.addWidget(w.version_label)
@@ -788,6 +798,11 @@ def refresh_ui(w):
             field.setStyleSheet(f"color:{color};font-weight:600")
             field.setProperty("statusColor", color)
     w.editor.set_pressed(status["pressed"])
+    if w.editor.settings.currentIndex() == 1 and w.editor.rendered_language != language():
+        w.editor.refresh_usage()
+        w.editor.update_pending()
+        if w.editor.pick_pages.currentIndex() == 2:
+            w.editor.show_positions()
     w.received_buttons.setVisible(status["connected"] and bool(status["pressed"] or status["last_pressed"]))
     if status["connected"]:
         if status["pressed"]:
