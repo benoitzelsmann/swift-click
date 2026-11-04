@@ -1,0 +1,21 @@
+# This repository contains UI sources and documentation only.
+app.py
+app_paths.py
+controller.py
+controller.json
+controller.pre-v2.json
+settings.py
+server.py
+media_controls.py
+mouse_controls.py
+oad.py
+diagnostics/
+.venv/
+__pycache__/
+*.pyc
+*.log
+*.exe
+*.zip
+build/
+dist/
+artifacts/

@@ -1,0 +1,30 @@
+name: Bug report
+description: Report an installation, controller or application problem.
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Swift Click version
+      placeholder: '0.15.0'
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Include the version/build, without your computer name or account name.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps and observed result
+      description: Explain what happened and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Controller, MyWhoosh or display details
+      description: Firmware version or display scaling if relevant. Do not share Bluetooth addresses, account names or personal screen content. Redact personal paths from logs.
