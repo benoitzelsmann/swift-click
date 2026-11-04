@@ -22,16 +22,17 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QScrollArea,
 )
-from settings import ACTIONS, ASSIGNABLE, REPEATABLE, action_id
+from settings import ACTIONS, ASSIGNABLE, REPEATABLE, GESTURES, GESTURE_NAMES, action_id
 from ui_controls import KeyboardButton, ToggleSwitch, SelectionList
 from i18n import tr, language
 
 ACTION_GROUPS = {
-    "MyWhoosh": ("shift_up", "shift_down"),
+    "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right"),
     "Volume": ("volume_down", "volume_up"),
     "Playback": ("media_previous", "media_play_pause", "media_next"),
     "Video": ("seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
+    "Windows & routines": ("switch_windows", "routine"),
 }
 
 COLORS = {
@@ -135,6 +136,7 @@ class AssignmentButton(KeyboardButton):
         super().__init__()
         self.setObjectName("assignment")
         self.setProperty("i18nUserText", True)
+        self.setProperty("i18nUserAccessible", True)
         self.caption = caption
         self.full_text = ""
         self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
@@ -150,7 +152,11 @@ class AssignmentButton(KeyboardButton):
             points = self.window().controller.config["positions"]
             point = points.get(action["position_id"])
             self.full_text = point["name"] if point else "Choose a position"
-        self.setToolTip(self.full_text)
+        if ident == "routine":
+            routine = self.window().controller.config["routines"].get(action["routine_id"])
+            self.full_text = routine["name"] if routine else tr("Choose a routine")
+        self.setToolTip("")
+        self.setAccessibleName(tr(self.caption) + " · " + self.full_text)
         self.render_text()
 
     def render_text(self):
@@ -184,6 +190,7 @@ class ControllerEditor(QWidget):
         self.window_owner = window
         self.pressed = set()
         self.cards = {}
+        self.gesture_rows = {}
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.settings = QStackedWidget()
@@ -193,8 +200,8 @@ class ControllerEditor(QWidget):
         self.settings.addWidget(diagram)
         grid = QGridLayout(diagram)
         grid.setContentsMargins(0, 0, 0, 0)
-        grid.setHorizontalSpacing(24)
-        grid.setVerticalSpacing(20)
+        grid.setHorizontalSpacing(12)
+        grid.setVerticalSpacing(10)
         for column in range(6):
             grid.setColumnStretch(column, 1)
         grid.setRowStretch(1, 1)
@@ -208,10 +215,12 @@ class ControllerEditor(QWidget):
 
         self.restore = KeyboardButton("Reset")
         self.restore.setAccessibleName("Reset button assignments")
-        self.restore.setToolTip("Reset button assignments")
         self.restore.setObjectName("quiet")
         grid.addWidget(self.restore, 0, 4, 1, 2,
                        Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        manage = push("Manage presses",self.manage_presses)
+        manage.setObjectName("quiet")
+        grid.addWidget(manage,0,0,1,2,Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         choices, choice_box = card()
         self.choices_frame = choices
@@ -223,6 +232,12 @@ class ControllerEditor(QWidget):
         self.current_assignment = label("","muted")
         self.current_assignment.setProperty("i18nUserText",True)
         choice_box.addWidget(self.current_assignment)
+        self.timing = label("","muted")
+        self.timing.setStyleSheet("font-size:12px")
+        choice_box.addWidget(self.timing)
+        self.action_note = label("","muted")
+        self.action_note.setStyleSheet("font-size:12px")
+        choice_box.addWidget(self.action_note)
         self.back_to_actions = push("Action types",self.show_actions)
         self.back_to_actions.setObjectName("quiet")
         self.back_to_actions.hide()
@@ -237,7 +252,7 @@ class ControllerEditor(QWidget):
             button = push(group,lambda _=False,g=group:self.show_group(g))
             button.setObjectName("category")
             button.setMinimumHeight(62)
-            category_grid.addWidget(button,index//2,index%2)
+            category_grid.addWidget(button,index//3,index%3)
             self.category_buttons[group] = button
         self.pick_pages.addWidget(categories)
         action_page = QWidget()
@@ -263,8 +278,8 @@ class ControllerEditor(QWidget):
             option.setMinimumHeight(34)
             self.options.addButton(option)
             if action == "none":
-                option.setMinimumHeight(62)
-                category_grid.addWidget(option,2,1)
+                option.setMinimumHeight(34)
+                category_grid.addWidget(option,2,0,1,3)
             else:
                 cell = QWidget(action_page)
                 cell_box = QVBoxLayout(cell)
@@ -287,6 +302,7 @@ class ControllerEditor(QWidget):
         self.position_hint = label("Choose a saved screen point for this gesture.","muted")
         positions_box.addWidget(self.position_hint)
         self.position_choices = SelectionList()
+        self.position_choices.setStyleSheet("QListWidget::item { padding:5px 8px; margin-bottom:2px; font-size:12px; }")
         self.position_choices.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.position_choices.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.position_choices.setMaximumHeight(104)
@@ -295,12 +311,22 @@ class ControllerEditor(QWidget):
         self.add_position = push("Create a position", self.create_position)
         self.add_position.setObjectName("quiet")
         positions_box.addWidget(self.add_position,alignment=Qt.AlignmentFlag.AlignLeft)
+        routines_page = QWidget()
+        routines_box = QVBoxLayout(routines_page)
+        routines_box.setContentsMargins(0,0,0,0)
+        self.routine_choices = SelectionList()
+        self.routine_choices.setMaximumHeight(125)
+        self.routine_choices.currentItemChanged.connect(self.apply_routine)
+        routines_box.addWidget(self.routine_choices)
+        routines_box.addWidget(push("Manage routines",lambda:show_page(self.window_owner,PAGE_ROUTINES)))
+        self.pick_pages.addWidget(routines_page)
         controls = QHBoxLayout()
         controls.addWidget(self.back_to_actions)
         controls.addWidget(push("Cancel",self.end_edit))
         controls.addStretch()
         self.save_button = push("Save",self.save_action,True)
         self.save_button.setProperty("i18nUserTooltip",True)
+        self.save_button.setProperty("i18nUserAccessible",True)
         controls.addWidget(self.save_button)
         choice_box.addLayout(controls)
         choice_box.addStretch()
@@ -310,11 +336,60 @@ class ControllerEditor(QWidget):
         choices.setMaximumWidth(640)
         picker_layout.addWidget(choices, alignment=Qt.AlignmentFlag.AlignCenter)
         self.settings.addWidget(picker)
+        presses, presses_box = card()
+        presses_box.setContentsMargins(18,12,18,12)
+        presses_box.setSpacing(6)
+        presses_box.addWidget(label("Manage presses",size=18))
+        presses_box.addWidget(label("Simple: on release. Double: two brief presses within 300 ms. Long: release after 650 ms. Continuous hold: starts at 1.5 s.","muted"))
+        presses_box.addWidget(label("Double delays Simple by up to 300 ms. Disabled presses keep their assignments.","muted"))
+        flags_grid = QGridLayout()
+        flags_grid.setVerticalSpacing(2)
+        self.enable_switches = {}
+        for column, kind in enumerate(GESTURES,1):
+            flags_grid.addWidget(label(GESTURE_NAMES[kind],"muted"),0,column)
+        for row,key in enumerate(("y","b","a","z","plus"),1):
+            flags_grid.addWidget(label("+" if key == "plus" else key.upper()),row,0)
+            for column,kind in enumerate(GESTURES,1):
+                toggle = ToggleSwitch("")
+                toggle.setFixedHeight(28)
+                toggle.setAccessibleName(("+" if key == "plus" else key.upper()) + " · " + GESTURE_NAMES[kind])
+                toggle.clicked.connect(lambda checked,k=key,g=kind:self.enable_gesture(k,g,checked))
+                flags_grid.addWidget(toggle,row,column)
+                self.enable_switches[key,kind] = toggle
+        presses_box.addLayout(flags_grid)
+        presses_box.addWidget(push("Done",lambda:self.settings.setCurrentIndex(0)),alignment=Qt.AlignmentFlag.AlignRight)
+        presses_box.addStretch()
+        self.settings.addWidget(presses)
+
+    def manage_presses(self):
+        for (key,kind), toggle in self.enable_switches.items():
+            toggle.setChecked(self.window_owner.controller.config["enabled"][key][kind])
+        self.settings.setCurrentIndex(2)
+
+    def enable_gesture(self, key, kind, checked):
+        config = copy.deepcopy(self.window_owner.controller.config)
+        config["enabled"][key][kind] = checked
+        try:
+            self.window_owner.controller.save(config)
+        except (ValueError,OSError) as exc:
+            self.enable_switches[key,kind].setChecked(not checked)
+            self.window_owner.show_error(str(exc))
+        self.refresh_enabled()
+
+    def refresh_enabled(self):
+        for (key,kind), widgets in self.gesture_rows.items():
+            for widget in widgets:
+                widget.setVisible(self.window_owner.controller.config["enabled"][key][kind])
 
     def edit_action(self, field):
         self.field = field
         self.pending = copy.deepcopy(field.action)
         self.choice_title.setText(tr(field.caption))
+        rules = {"short":"On release. With Double enabled, waits up to 300 ms.",
+                 "double":"Two presses shorter than 650 ms; second starts within 300 ms.",
+                 "long":"On release after 650 ms, before continuous hold starts.",
+                 "hold":"Starts at 1.5 s. Volume repeats every 150 ms; video every 400 ms; MyWhoosh arrows stay down."}
+        self.timing.setText(rules[field.gesture])
         self.current_assignment.setText(tr("Current action: {action}").format(action=self.binding_text(field.action)))
         self.refresh_usage()
         self.show_actions()
@@ -322,6 +397,7 @@ class ControllerEditor(QWidget):
         self.settings.setCurrentIndex(1)
 
     def show_actions(self):
+        self.action_note.hide()
         self.choices_frame.setMinimumWidth(540)
         self.choices_frame.setMaximumWidth(640)
         for option in self.options.buttons():
@@ -340,6 +416,9 @@ class ControllerEditor(QWidget):
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
         self.group_title.setText(tr(group))
+        self.action_note.setText("Keep keyboard focus on the video player inside the selected browser window." if group == "Video" else
+                                 "MyWhoosh arrows are separate from gears. Route selection is not verified." if group == "MyWhoosh" else "")
+        self.action_note.setVisible(bool(self.action_note.text()))
         for cell in self.option_cells.values():
             self.action_grid.removeWidget(cell)
             cell.hide()
@@ -366,6 +445,9 @@ class ControllerEditor(QWidget):
         if action_id(binding) == "mouse_position":
             point = self.window_owner.controller.config["positions"].get(binding["position_id"])
             return point["name"] if point else tr("Choose a position")
+        if action_id(binding) == "routine":
+            routine = self.window_owner.controller.config["routines"].get(binding["routine_id"])
+            return routine["name"] if routine else tr("Choose a routine")
         return tr(ACTIONS[action_id(binding)][1])
 
     def uses(self, action, position_id=None):
@@ -377,7 +459,7 @@ class ControllerEditor(QWidget):
                 if position_id is not None and binding.get("position_id") != position_id:
                     continue
                 found.append(("+" if key == "plus" else key.upper()) + " · " +
-                             tr({"short":"Short","long":"Long","hold":"Hold"}[gesture]))
+                             tr(GESTURE_NAMES[gesture]))
         return found
 
     def usage_text(self, action, position_id=None):
@@ -397,21 +479,24 @@ class ControllerEditor(QWidget):
             self.group_title.setText(tr(self.active_group))
         for action, used in self.usage_labels.items():
             used.setText(self.usage_text(action))
-            used.setToolTip(", ".join(self.uses(action)))
         for group, button in self.category_buttons.items():
             allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
             assigned = sum(bool(self.uses(a)) for a in allowed)
             button.setText(tr(group) + "\n" + tr("{count} actions, {used} assigned").format(count=len(allowed),used=assigned))
+        self.update_pending()
 
     def update_pending(self):
         self.save_button.setEnabled(self.pending is not None)
-        self.save_button.setToolTip(self.binding_text(self.pending))
+        self.save_button.setAccessibleName(tr("Save") + " · " + self.binding_text(self.pending))
 
     def apply_choice(self, option):
         action = option.property("action")
         if action == "mouse_position":
             self.pending = copy.deepcopy(self.field.action) if action_id(self.field.action) == "mouse_position" else None
             self.show_positions()
+            return
+        if action == "routine":
+            self.show_routines()
             return
         self.pending = action
         self.update_pending()
@@ -426,7 +511,6 @@ class ControllerEditor(QWidget):
             item = self.position_choices.item(self.position_choices.count()-1)
             item.setText(point["name"] + "\n" + self.usage_text("mouse_position",ident))
             item.setData(Qt.ItemDataRole.UserRole,ident)
-            item.setToolTip(point["name"])
             if isinstance(self.pending,dict) and self.pending.get("position_id") == ident:
                 self.position_choices.setCurrentItem(item)
         self.position_choices.blockSignals(signals_blocked)
@@ -442,6 +526,28 @@ class ControllerEditor(QWidget):
         self.add_position.show()
         self.update_pending()
         self.fit_stage()
+
+    def show_routines(self):
+        self.routine_choices.blockSignals(True)
+        self.routine_choices.clear()
+        self.pending = None
+        for ident,routine in self.window_owner.controller.config["routines"].items():
+            self.routine_choices.addItem(routine["name"])
+            item = self.routine_choices.item(self.routine_choices.count()-1)
+            item.setData(Qt.ItemDataRole.UserRole,ident)
+            if action_id(self.field.action) == "routine" and self.field.action["routine_id"] == ident:
+                self.routine_choices.setCurrentItem(item)
+                self.pending = copy.deepcopy(self.field.action)
+        self.routine_choices.blockSignals(False)
+        self.pick_pages.setCurrentIndex(3)
+        self.back_to_actions.show()
+        self.update_pending()
+        self.fit_stage()
+
+    def apply_routine(self, item, _previous=None):
+        if item:
+            self.pending = {"action":"routine","routine_id":item.data(Qt.ItemDataRole.UserRole)}
+            self.update_pending()
 
     def apply_position(self, item, _previous=None):
         if item is not None:
@@ -489,14 +595,18 @@ class ControllerEditor(QWidget):
         badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ink = "white" if key == "plus" else "#101822"
         badge.setStyleSheet(f"background:{COLORS[key]};color:{ink};border-radius:12px;font-weight:700")
-        grid.addWidget(badge, 0, 0, 3, 1)
-        for row, (kind, title) in enumerate((("short", "Short"), ("long", "Long"), ("hold", "Hold"))):
-            grid.addWidget(label(title, "muted"), row, 1)
+        grid.addWidget(badge, 0, 0, 4, 1)
+        for row,kind in enumerate(GESTURES):
+            title = GESTURE_NAMES[kind]
+            caption = label("Hold" if kind == "hold" else title, "muted")
+            caption.setStyleSheet("font-size:12px")
+            grid.addWidget(caption, row, 1)
             field = AssignmentButton(f"{name} · {title}")
             field.gesture = kind
             field.clicked.connect(lambda checked=False, select=field: self.edit_action(select))
             bindings[key, kind] = field
             grid.addWidget(field, row, 2)
+            self.gesture_rows[key,kind] = (caption,field)
         grid.setColumnStretch(2, 1)
         self.cards[key] = frame
         return frame
@@ -529,7 +639,8 @@ def make_page(title, subtitle="", action=None):
 
 
 PAGE_DASHBOARD, PAGE_MYWHOOSH, PAGE_CONTROLLER, PAGE_MOUSE, PAGE_BUTTONS, PAGE_GENERAL, PAGE_CREDITS, PAGE_CONTACT = range(8)
-PAGE_SECTIONS = (0, 1, 1, 2, 2, 2, 2, 2)
+PAGE_WINDOWS, PAGE_ROUTINES = 8,9
+PAGE_SECTIONS = (0, 1, 1, 2, 2, 2, 2, 2, 3, 3)
 
 
 def scroll_page(page):
@@ -562,8 +673,8 @@ def build_ui(w):
     nav.addStretch()
     w.pages = QStackedWidget()
     w.nav = []
-    w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS}
-    for index, name in enumerate(("Dashboard", "Connections", "Settings")):
+    w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS, 3:PAGE_WINDOWS}
+    for index, name in enumerate(("Dashboard", "Connections", "Settings", "Actions")):
         item = push(name, lambda _=False, i=index: show_section(w, i))
         item.setObjectName("nav")
         item.setCheckable(True)
@@ -577,7 +688,8 @@ def build_ui(w):
     w.subnav = {}
     for target, name in ((PAGE_CONTROLLER, "Controller"), (PAGE_MYWHOOSH, "MyWhoosh"),
                          (PAGE_BUTTONS, "Buttons"), (PAGE_MOUSE, "Mouse positions"),
-                         (PAGE_GENERAL, "General"), (PAGE_CREDITS, "Credits"), (PAGE_CONTACT, "Contact")):
+                         (PAGE_GENERAL, "General"), (PAGE_CREDITS, "Credits"), (PAGE_CONTACT, "Contact"),
+                         (PAGE_WINDOWS,"Windows"),(PAGE_ROUTINES,"Routines")):
         item = push(name, lambda _=False, i=target: show_page(w, i))
         item.setObjectName("subnavButton")
         item.setCheckable(True)
@@ -608,6 +720,13 @@ def build_ui(w):
             divider.setFixedHeight(1)
             summary_box.addWidget(divider)
     box.addWidget(summary)
+    shortcuts = QHBoxLayout()
+    shortcuts.addWidget(push("Windows",lambda:show_page(w,PAGE_WINDOWS)))
+    shortcuts.addWidget(push("Routines",lambda:show_page(w,PAGE_ROUTINES)))
+    shortcuts.addStretch()
+    box.addLayout(shortcuts)
+    w.action_result = label("","muted")
+    box.addWidget(w.action_result)
     box.addStretch()
     w.pages.addWidget(page)
 
@@ -708,6 +827,11 @@ def build_ui(w):
 
     from about_view import build_about_pages
     build_about_pages(w)
+    from automation_view import WindowsPage, RoutinesPage
+    w.windows_page = WindowsPage(w)
+    w.routines_page = RoutinesPage(w)
+    w.pages.addWidget(w.windows_page)
+    w.pages.addWidget(w.routines_page)
     show_page(w, PAGE_DASHBOARD)
 
 
@@ -716,6 +840,10 @@ def show_section(w, section):
 
 
 def show_page(w, index):
+    if index == PAGE_WINDOWS:
+        w.windows_page.reload()
+    elif index == PAGE_ROUTINES:
+        w.routines_page.reload()
     section = PAGE_SECTIONS[index]
     w.last_section_pages[section] = index
     w.pages.setCurrentIndex(index)
@@ -728,6 +856,8 @@ def show_page(w, index):
 
 
 def refresh_ui(w):
+    w.action_result.setText(w.controller.windows.result)
+    w.windows_page.result.setText(w.controller.windows.result)
     running = bool(w.service_task and not w.service_task.done())
     w.start_button.setEnabled(not running and not w.stopping)
     w.start_button.setText(

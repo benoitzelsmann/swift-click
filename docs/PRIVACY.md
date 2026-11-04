@@ -8,6 +8,11 @@ Bluetooth reference and activity logs are stored locally in the Windows user
 account. A local mouse-motion detector preserves physical pointer movements when
 restoring the pointer after a click. Mouse actions do not require screen recording.
 
+Selecting a window reads the titles and application paths of open windows. Only
+the two selected application identities and titles are saved locally, along with
+named routine settings. Temporary window handles stay in memory for the session.
+They are not uploaded. No browser page contents are read.
+
 The interface language and expanded-guide choices are also saved locally. Contact
 links open the user's browser or email application only when selected.
 

@@ -32,6 +32,22 @@ backs up the old settings and resets the fifteen button assignments once.
 Bluetooth settings and the keep-awake choice are retained. Upgrading from 0.15 to
 the English 0.16 release does not reset assignments or rename saved mouse targets.
 
+The 1.0 → 1.1 upgrade retains all mappings, positions, language and connection
+settings. It saves controller.pre-v3.json before migration. Simple stays enabled;
+previous Long/Hold gestures are enabled when assigned. Double starts disabled.
+Manage these switches in Settings → Buttons → Manage presses. Window targets and
+routines are configured under Actions. No temporary window handles are saved.
+
+## Return to 1.0
+
+Keep the previous installer before upgrading. Close Swift Click normally, copy the
+entire %LOCALAPPDATA%\SwiftClick folder to a safe backup, then install the previous
+1.0 installer. Before opening it, replace controller.json with a copy of
+controller.pre-v3.json in the same folder. The 1.0 reader cannot read the 1.1 schema.
+Keep the newer configuration backup if you intend to return to 1.1. New Double,
+window and routine settings are unavailable in 1.0. The language preferences remain
+separate and are retained. No automatic downgrade is performed.
+
 Uninstalling removes the installed files and shortcuts. Saved positions, mappings
 and logs remain in the user account for a later reinstallation. If an old unpacked
 Swift Click browser extension is still present, remove it once from the browser's

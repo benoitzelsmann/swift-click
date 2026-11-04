@@ -52,6 +52,8 @@ def apply_widgets(root):
         properties = ["toolTip", "accessibleName", "windowTitle"]
         if widget.property("i18nUserTooltip"):
             properties.remove("toolTip")
+        if widget.property("i18nUserAccessible"):
+            properties.remove("accessibleName")
         if isinstance(widget, QMessageBox):
             properties.extend(["informativeText", "detailedText"])
         if isinstance(widget, (QLabel, QAbstractButton)) and not widget.property("i18nUserText"):

@@ -29,14 +29,15 @@ Base already removes the daily button-action limit. Pro is not required simply t
 ## What it does
 
 - Change gears in MyWhoosh using the OpenBikeControl network protocol.
-- Assign short presses, long presses and holds to the five controller buttons.
+- Enable Simple, Double, Long and Continuous hold independently on each button.
 - Control Windows volume, play/pause and previous/next tracks.
-- Send left/right arrow presses to the active video player.
+- Target a selected video window for left/right navigation, or MyWhoosh for its own arrow keys.
+- Switch between two selected windows, or run guided show/seek/click-and-return routines.
 - Click at the current pointer position or at named points saved on your displays.
 - Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
 
-No browser extension, Swift Click account or telemetry is required. Browser video controls depend on the active player and its keyboard focus. Named clicks require the target window to remain in the saved position.
+No browser extension, Swift Click account or telemetry is required. Video controls activate the selected window and require keyboard focus inside its player. If Windows refuses activation, no key is sent. Named clicks require the target window to remain in the saved position.
 
 ![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
 
@@ -46,15 +47,17 @@ No browser extension, Swift Click account or telemetry is required. Browser vide
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.0.0 package is an unsigned release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.1.0 package is an unsigned draft release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
-Updates use the same installer and preserve settings, except for the one-time 0.15 button-mapping reset described in the installation guide. Updates are downloaded and installed manually. There is no automatic updater in this release.
+Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 
 ## Controller setup
 
 Wake the right controller and connect it in Swift Click. Start the MyWhoosh connection and accept it in MyWhoosh. The app includes illustrated connection guides. Configure button assignments and mouse targets in Settings.
 
-Short presses trigger on release before 650 ms. Long presses trigger on release after 650 ms. A configured hold starts at 1.5 seconds and repeats volume or video navigation until release. The three gestures are exclusive.
+Under **Settings → Buttons → Manage presses**, enable the gestures you need. Simple triggers on release; when Double is enabled it waits up to 300 ms for a second brief press. Long triggers on release from 650 ms. Continuous hold starts at 1.5 seconds, repeating volume every 150 ms or video arrows every 400 ms. MyWhoosh arrows remain down until release. Gestures are exclusive, and disabled gestures keep their saved actions.
+
+Under **Actions → Windows**, select MyWhoosh and one Video window. Window handles are not persisted; after restart, ambiguous targets require selection again. **Actions → Routines** offers guided show-window, seek-video-and-return and click-position-and-return templates. Targeted clicks verify that the point is inside the selected window and not covered. Keyboard arrow behaviour for MyWhoosh junctions has not been verified; no route-selection guarantee is made.
 
 An optional experimental keep-awake mode is limited to the tested right controller firmware 1.2.0. It uses the controller's firmware-update mechanism and can erase its secondary firmware slot. Activation requires the explanation and consent shown in the app. Long-session validation is still pending.
 

@@ -4,6 +4,8 @@ app_paths.py
 controller.py
 controller.json
 controller.pre-v2.json
+controller.pre-v3.json
+window_actions.py
 settings.py
 server.py
 media_controls.py

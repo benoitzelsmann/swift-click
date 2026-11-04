@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStacked
 import mouse_controls
 from desktop_ui import card, label, push, make_page, show_page, PAGE_BUTTONS
 from ui_controls import SelectionList, CountdownOverlay, confirm_dialog
+from i18n import tr
 
 
 class MousePage(QWidget):
@@ -362,17 +363,25 @@ class MousePage(QWidget):
             for gesture,binding in mapping.items():
                 if isinstance(binding,dict) and binding.get("position_id") == ident:
                     uses.append(f"{'+' if key == 'plus' else key.upper()} · " +
-                                {"short":"Short","long":"Long","hold":"Hold"}[gesture])
+                                {"short":"Simple","double":"Double","long":"Long","hold":"Continuous hold"}[gesture])
+        routines = [routine["name"] for routine in self.window.controller.config["routines"].values()
+                    if routine["position_id"] == ident]
+        uses.extend(routines)
         text = f"Delete “{self.points()[ident]['name']}”?"
+        if routines:
+            text += "\n" + tr("Routines using this position will also be deleted.")
         if uses:
             text += "\nThese assignments will be set to None.\n" + "\n".join(uses)
         if not confirm_dialog(self,"Delete position",text,accept="Delete"):
             return
         config = copy.deepcopy(self.window.controller.config)
         del config["positions"][ident]
+        removed = {rid for rid,routine in config["routines"].items() if routine["position_id"] == ident}
+        for rid in removed:
+            del config["routines"][rid]
         for mapping in config["buttons"].values():
             for kind,binding in mapping.items():
-                if isinstance(binding,dict) and binding.get("position_id") == ident:
+                if isinstance(binding,dict) and (binding.get("position_id") == ident or binding.get("routine_id") in removed):
                     mapping[kind] = "none"
         try:
             self.persist(config)
