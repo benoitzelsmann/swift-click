@@ -163,4 +163,3 @@ class ToggleSwitch(QCheckBox):
         painter.drawText(QRectF(59, 0, self.width() - 59, self.height()),
                          Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                          self.text())
-
