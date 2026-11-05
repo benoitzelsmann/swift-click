@@ -545,7 +545,9 @@ class ControllerEditor(QWidget):
     def end_edit(self):
         self.pending = None
         self.settings.setCurrentIndex(0)
-        self.field.setFocus()
+        field = getattr(self, "field", None)
+        if field is not None:
+            field.setFocus()
 
 
     def binding_card(self, key, bindings):
@@ -672,6 +674,14 @@ def build_ui(w):
         w.subnav[target] = item
     subnav.addStretch()
     outer.addWidget(w.subnav_frame)
+    w.recovery_notice = QFrame()
+    w.recovery_notice.setObjectName("recoveryNotice")
+    recovery_row = QHBoxLayout(w.recovery_notice)
+    recovery_row.setContentsMargins(24, 12, 24, 12)
+    recovery_row.addWidget(label("Some settings could not be loaded. You can restore a backup in General settings."), 1)
+    recovery_row.addWidget(push("Open settings", lambda: show_page(w, PAGE_GENERAL)))
+    w.recovery_notice.setVisible(bool(w.controller.config_error))
+    outer.addWidget(w.recovery_notice)
     outer.addWidget(w.pages, 1)
 
     w.session_button = push("Start session", w.start_session, True)
@@ -837,6 +847,7 @@ def show_page(w, index):
 
 
 def refresh_ui(w):
+    w.recovery_notice.setVisible(bool(w.controller.config_error))
     if w.routines_page.rendered_language != language():
         w.routines_page.reload()
     if w.windows_page.rendered_language != language():

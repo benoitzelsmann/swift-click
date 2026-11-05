@@ -58,6 +58,9 @@ class WindowsPage(QWidget):
         self.saved.setAccessibleName("Saved windows")
         self.saved.currentItemChanged.connect(self.selection)
         self.saved.itemDoubleClicked.connect(self.edit_item)
+        from ui_controls import CatalogSearch
+        self.search = CatalogSearch(self.saved, "Search windows")
+        content.addWidget(self.search)
         content.addWidget(self.saved,1)
         self.empty = label("Add an open window or run detection.","muted")
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -181,6 +184,7 @@ class WindowsPage(QWidget):
             if ident == selected:
                 self.saved.setCurrentItem(item)
         self.saved.blockSignals(False)
+        self.search.apply_filter()
         self.empty.setVisible(not self.saved.count())
         self.saved.setVisible(bool(self.saved.count()))
         self.selection(self.saved.currentItem())

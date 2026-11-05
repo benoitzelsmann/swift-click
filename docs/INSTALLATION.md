@@ -101,9 +101,9 @@ Add `/TASKS="desktopicon"` for a desktop shortcut, or `/TASKS=""` to omit it. Si
 installation does not launch the app. Exit code 0 indicates success. Treat a
 nonzero code as a failure and inspect the log. No automatic restart is requested.
 
-## Unsigned beta
+## Installer signature
 
-The current beta is unsigned. Windows may warn about or block it depending on the
+The current installer is unsigned. Windows may warn about or block it depending on the
 PC's security settings. A public signing identity requires certificate validation.
 A self-signed local certificate does not provide public publisher trust.
 

@@ -8,7 +8,9 @@ LANGUAGES = {"en": "English", "fr": "Français"}
 _language = "en"
 _french = json.loads((Path(__file__).with_name("locales") / "fr.json").read_text(encoding="utf8"))
 _patterns = []
-for source, target in _french.items():
+# A specific sentence must win over a generic prefix such as "Version {version}".
+for source, target in sorted(_french.items(),
+        key=lambda item: len(re.sub(r"\{[^{}]*\}", "", item[0])), reverse=True):
     if "{" in source:
         parts = list(Formatter().parse(source))
         expression = "".join(re.escape(literal) + (r"(.+?)" if field else "")

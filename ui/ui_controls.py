@@ -7,7 +7,7 @@ from PySide6.QtGui import QColor, QPainter, QCursor, QPen
 from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
     QStyledItemDelegate, QStyleOptionViewItem, QListWidget, QAbstractItemView,
-    QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,QHBoxLayout,QWidget,QSpinBox,QDoubleSpinBox,QAbstractSpinBox,
+    QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,QHBoxLayout,QWidget,QSpinBox,QDoubleSpinBox,QAbstractSpinBox,QLineEdit,
 )
 
 
@@ -106,6 +106,42 @@ class CatalogList(SelectionList):
         super().__init__(parent)
         self.setIconSize(QSize(30, 30))
         self.setObjectName("catalog")
+
+
+class CatalogSearch(QWidget):
+    """Filter a catalogue without letting a hidden selection remain actionable."""
+    def __init__(self, catalogue, placeholder):
+        super().__init__()
+        self.catalogue = catalogue
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+        self.field = QLineEdit()
+        self.field.setPlaceholderText(placeholder)
+        self.field.setAccessibleName(placeholder)
+        self.field.setClearButtonEnabled(True)
+        layout.addWidget(self.field)
+        self.empty = QLabel("No matching results")
+        self.empty.setObjectName("muted")
+        self.empty.hide()
+        layout.addWidget(self.empty)
+        self.field.textChanged.connect(self.apply_filter)
+
+    def apply_filter(self, *_):
+        import unicodedata
+        def normalized(value):
+            return "".join(c for c in unicodedata.normalize("NFKD", value.casefold()) if not unicodedata.combining(c))
+        terms = normalized(self.field.text()).split()
+        visible = 0
+        for row in range(self.catalogue.count()):
+            item = self.catalogue.item(row)
+            matches = all(term in normalized(item.text()) for term in terms)
+            item.setHidden(not matches)
+            visible += matches
+        current = self.catalogue.currentItem()
+        if current is not None and current.isHidden():
+            self.catalogue.setCurrentRow(-1)
+        self.empty.setVisible(bool(terms) and visible == 0)
 
 
 def message_box(parent, title, text, *, question=False, warning=False, accept="Confirm"):

@@ -2,7 +2,7 @@
 
 Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
 
-[Download 2.0.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v2.0.0/SwiftClick-2.0.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v2.0.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download 3.0.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v3.0.0/SwiftClick-3.0.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v3.0.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md) · [Deployment](docs/DEPLOYMENT.md)
 
 <img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
 
@@ -24,7 +24,7 @@ According to [BikeControl's official pricing page](https://bikecontrol.app/prici
 - **Pro** is about **US$2.50/month**, or **US$2.25/month billed annually**, and adds BikeControl's own virtual shifting and other features. Store prices vary by region.
 - After its initial trial, the unpurchased app allows **15 button actions per day**. The separate Pro virtual-shifting trial allows **20 minutes per day**.
 
-Base already removes the daily button-action limit. Pro is not required simply to exceed 20 gear changes per day. Swift Click's current beta has no purchase, subscription or daily shift counter.
+Base already removes the daily button-action limit. Pro is not required simply to exceed 20 gear changes per day. Swift Click has no purchase, subscription or daily shift counter.
 
 ## What it does
 
@@ -35,8 +35,12 @@ Base already removes the daily button-action limit. Pro is not required simply t
 - Save named windows or specific Edge and Chrome tabs, with automatic MyWhoosh/media detection.
 - Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
 - Click at the current pointer position or save a point with a local preview and its associated window.
-- Choose Light or Dark under **Settings → General → Appearance**. Swift Click remembers your choice.
+- Choose Light, Dark or System under **Settings → General → Appearance**. Swift Click remembers your choice.
 - Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
+- Export and restore your settings with an automatic recovery copy before restoration.
+- Search saved windows, positions and routines, and duplicate a routine to create a variation.
+- Check for a new version under **Settings → Credits** when you choose.
+- Copy technical details for a support request under **Settings → Contact**, without sharing your saved targets or addresses.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
 
 No browser extension, Swift Click account or telemetry is required. Video controls activate the selected window and require keyboard focus inside its player. If Windows refuses activation, no key is sent. Named clicks require the target window to remain in the saved position.
@@ -121,9 +125,9 @@ Buttons page enables or disables each gesture without discarding its assignment.
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 2.0.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 3.0.0 installer is unsigned. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
-Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
+Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. An optional update check opens the release page. Downloads and installation remain manual; there is no background updater.
 
 ## Controller setup
 

@@ -22,7 +22,17 @@ browser history or page contents. Ambiguous matches require a manual selection.
 The Open MyWhoosh button looks up MyWhoosh's local Start-menu registration. It
 does not send an installation inventory to a server.
 
-The interface language and expanded-guide choices are also saved locally. Contact
+The interface language, appearance and expanded-guide choices are also saved locally.
+Export settings writes a local backup containing assignments, targets, previews and
+controller information. Restore settings preserves a recovery copy before replacing
+configuration. Treat these backup files as private.
+
+Check for updates contacts GitHub only when selected. GitHub receives the normal
+network request, including the connection's IP address. No settings or logs are
+included. View release opens GitHub in your browser. Copy technical details places
+app/system versions, language/appearance, connection states and saved-item counts
+on the clipboard. This report excludes saved names, paths, Bluetooth references
+and activity logs. Contact
 links open the user's browser or email application only when selected.
 
 The app requires no Swift Click account and includes no telemetry or remote

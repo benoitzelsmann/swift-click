@@ -80,6 +80,9 @@ class MousePage(QWidget):
         self.list.setAccessibleName("Saved mouse positions")
         self.list.currentRowChanged.connect(self.selection)
         self.list.itemDoubleClicked.connect(lambda _: self.edit_selected())
+        from ui_controls import CatalogSearch
+        self.search = CatalogSearch(self.list, "Search positions")
+        rows.addWidget(self.search)
         rows.addWidget(self.list,1)
         self.empty = label("No saved positions", "muted")
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -192,6 +195,7 @@ class MousePage(QWidget):
         self.list.blockSignals(False)
         if self.list.count() and self.list.currentRow() < 0:
             self.list.setCurrentRow(0)
+        self.search.apply_filter()
         self.list.setVisible(bool(self.list.count()))
         self.empty.setVisible(not self.list.count())
         self.selection()

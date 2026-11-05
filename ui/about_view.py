@@ -36,7 +36,7 @@ def build_about_pages(w):
     appearance_row.addWidget(label("Appearance", size=16), 1)
     w.appearance_group = QButtonGroup(w)
     w.appearance_buttons = {}
-    for mode, title in (("light", "Light"), ("dark", "Dark")):
+    for mode, title in (("light", "Light"), ("dark", "Dark"), ("system", "System")):
         button = push(title, lambda checked=False, value=mode: w.change_appearance(value))
         button.setMinimumWidth(110)
         button.setCheckable(True)
@@ -57,6 +57,16 @@ def build_about_pages(w):
     from timing_view import TimingSettings
     w.timing_settings=TimingSettings(w)
     box.addWidget(w.timing_settings)
+    backup_surface, backup_content = card()
+    backup_content.addWidget(label("Settings backup", size=18))
+    backup_content.addWidget(label("Save your assignments, windows, positions and routines in a local file.", "muted"))
+    from configuration_backup import choose_export, choose_import
+    backup_row = QHBoxLayout()
+    backup_row.addWidget(push("Export settings", lambda: choose_export(w)))
+    backup_row.addWidget(push("Restore settings", lambda: choose_import(w)))
+    backup_row.addStretch()
+    backup_content.addLayout(backup_row)
+    box.addWidget(backup_surface)
     box.addStretch()
     w.pages.addWidget(scroll_page(page))
 
@@ -73,6 +83,23 @@ def build_about_pages(w):
     github = push("Open GitHub", lambda: open_link(info["repository"]))
     github.setMaximumWidth(300)
     content.addWidget(github)
+    from app_support import check_for_updates, copy_support_report
+    w.update_check_running = False
+    w.update_url = ""
+    update_surface, update_content = card()
+    update_content.addWidget(label("Updates", size=18))
+    update_content.addWidget(label("Check GitHub for a newer version when you choose.", "muted"))
+    update_actions = QHBoxLayout()
+    w.update_button = push("Check for updates", lambda: w.launch(check_for_updates(w)))
+    w.update_link = push("View release", lambda: open_link(w.update_url))
+    w.update_link.hide()
+    update_actions.addWidget(w.update_button)
+    update_actions.addWidget(w.update_link)
+    update_actions.addStretch()
+    update_content.addLayout(update_actions)
+    w.update_status = label("", "muted")
+    update_content.addWidget(w.update_status)
+    box.addWidget(update_surface)
     notices = Path(sys.executable).parent / "notices" if getattr(sys, "frozen", False) else Path(__file__).parent / "dist/notices"
     licenses = push("Third-party licenses", lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(notices))))
     licenses.setEnabled(notices.is_dir())
@@ -92,6 +119,10 @@ def build_about_pages(w):
     suggestion = push("Suggest an improvement", lambda: open_link(info["repository"] + "/issues/new?title=Feature%20request"))
     suggestion.setMaximumWidth(300)
     content.addWidget(suggestion)
+    content.addWidget(push("Copy technical details", lambda: copy_support_report(w)))
+    content.addWidget(label("Includes app and system versions, connection states and saved-item counts.", "muted"))
+    w.support_status = label("", "muted")
+    content.addWidget(w.support_status)
     email = contact_email()
     w.contact_email_label = label(email or "Email contact is not available yet.", "muted")
     if email:
@@ -104,4 +135,4 @@ def build_about_pages(w):
     w.email_button.setMaximumWidth(300)
     content.addWidget(w.email_button)
     box.addStretch()
-    w.pages.addWidget(page)
+    w.pages.addWidget(scroll_page(page))

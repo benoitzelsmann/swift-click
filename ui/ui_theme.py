@@ -1,5 +1,6 @@
 """Apple HIG-inspired semantic colors for every Qt surface; no extra dependencies."""
 from PySide6.QtGui import QColor, QPalette
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 PALETTES = {
@@ -31,10 +32,14 @@ def stylesheet(mode="light"):
 
 def apply_theme(mode):
     global _current
-    mode = mode if mode in PALETTES else "light"
+    preference = mode if mode in (*PALETTES, "system") else "light"
     app = QApplication.instance()
+    if preference == "system":
+        mode = "dark" if app.styleHints().colorScheme() == Qt.ColorScheme.Dark else "light"
+    else:
+        mode = preference
     if mode == _current and app.styleSheet() == stylesheet(mode):
-        return mode
+        return preference
     _current = mode
     palette = QPalette()
     roles = {"Window":"canvas", "WindowText":"text", "Base":"surface", "AlternateBase":"subtle",
@@ -49,7 +54,7 @@ def apply_theme(mode):
     app.setStyleSheet(stylesheet(mode))
     for widget in app.allWidgets():
         widget.update()
-    return mode
+    return preference
 
 
 _STYLE = """
@@ -102,6 +107,7 @@ QListWidget::item { padding:12px; margin-bottom:5px; border-radius:10px; }
 QListWidget::item:selected { background:@selection; color:@text; }
 QStatusBar { background:@canvas; color:@muted; }
 
+QFrame#recoveryNotice { background:@selection; border-bottom:1px solid @focus; }
 QDialog, QMessageBox, QMenu { background:@surface; color:@text; }
 QToolTip { background:@surface; color:@text; border:1px solid @border; padding:6px; }
 QLabel { background:transparent; }

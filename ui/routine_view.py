@@ -40,6 +40,9 @@ class RoutinesPage(QWidget):
         self.list.setAccessibleName("Saved routines")
         self.list.currentItemChanged.connect(self.selection)
         self.list.itemDoubleClicked.connect(self.edit_item)
+        from ui_controls import CatalogSearch
+        self.search = CatalogSearch(self.list, "Search routines")
+        box.addWidget(self.search)
         box.addWidget(self.list,1)
         self.empty = QWidget()
         empty = QVBoxLayout(self.empty)
@@ -51,10 +54,11 @@ class RoutinesPage(QWidget):
         controls = QHBoxLayout()
         self.edit_button = push("Edit",self.edit)
         self.test = push("Test",lambda:owner.launch(self.run()))
+        self.duplicate_button = push("Duplicate",self.duplicate)
         self.delete = push("Delete",self.remove)
         self.stop_button = push("Stop",self.stop_test)
         self.stop_button.hide()
-        for widget in (self.edit_button,self.test,self.stop_button,self.delete):
+        for widget in (self.edit_button,self.duplicate_button,self.test,self.stop_button,self.delete):
             controls.addWidget(widget)
         controls.addStretch()
         box.addLayout(controls)
@@ -204,6 +208,7 @@ class RoutinesPage(QWidget):
             if ident == selected:
                 self.list.setCurrentItem(item)
         self.list.blockSignals(False)
+        self.search.apply_filter()
         self.list.setVisible(bool(self.list.count()))
         self.empty.setVisible(not self.list.count())
         if self.stack.currentIndex() == 0:
@@ -243,6 +248,19 @@ class RoutinesPage(QWidget):
         self.choose_action()
         self.stack.setCurrentIndex(1)
         self.update_controls()
+
+    def duplicate(self):
+        if self.testing or self.ident not in self.config()["routines"]:
+            return
+        source = copy.deepcopy(self.config()["routines"][self.ident])
+        self.new()
+        suffix = tr(" (copy)")
+        self.name.setText(source["name"][:60-len(suffix)] + suffix)
+        self.flow.set_steps(routine_steps(source, self.config()))
+        self.return_previous.setChecked(source["return"])
+        self.update_controls()
+        self.name.setFocus()
+        self.name.selectAll()
 
     def edit_item(self, item):
         self.selection(item)
@@ -384,8 +402,9 @@ class RoutinesPage(QWidget):
         self.save.setEnabled(valid and not dirty and not self.testing)
         selected = self.ident in self.config()["routines"]
         self.edit_button.setEnabled(selected and not self.testing)
+        self.duplicate_button.setEnabled(selected and not self.testing)
         self.delete.setEnabled(selected and not self.testing)
-        for button in (self.edit_button,self.test,self.delete):
+        for button in (self.edit_button,self.duplicate_button,self.test,self.delete):
             button.setVisible(bool(self.config()["routines"]))
         routine = self.config()["routines"].get(self.ident)
         self.test.setEnabled(selected and not self.testing and not any(step_problem(s,self.config()) for s in routine_steps(routine,self.config())) if routine else False)
