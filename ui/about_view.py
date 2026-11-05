@@ -37,12 +37,9 @@ def build_about_pages(w):
     w.language_select.setCurrentIndex(w.language_select.findData(language()))
     w.language_select.currentIndexChanged.connect(lambda _: w.change_language(w.language_select.currentData()))
     content.addWidget(w.language_select)
-    timings, timing_box = card()
-    box.addWidget(timings)
-    timing_box.addWidget(label("Button gestures",size=18))
-    timing_box.addWidget(label("Simple: on release. Double: two brief presses within 300 ms. Long: release after 650 ms. Continuous hold: starts at 1.5 s."))
-    timing_box.addWidget(label("Double delays Simple by up to 300 ms. Disabled presses keep their assignments.","muted"))
-    timing_box.addWidget(label("Starts at 1.5 s. Volume repeats every 150 ms; video every 400 ms; MyWhoosh arrows stay down.","muted"))
+    from timing_view import TimingSettings
+    w.timing_settings=TimingSettings(w)
+    box.addWidget(w.timing_settings)
     box.addStretch()
     w.pages.addWidget(scroll_page(page))
 

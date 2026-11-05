@@ -2,7 +2,7 @@
 
 Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
 
-[Download 1.3.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.3.0/SwiftClick-1.3.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.3.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download 1.4.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.4.0/SwiftClick-1.4.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.4.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 <img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
 
@@ -42,7 +42,7 @@ No browser extension, Swift Click account or telemetry is required. Video contro
 
 ![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
 
-Screenshots show the actual 1.3.0 interface with illustrative configurations, not preconfigured assignments. New installations start with no actions assigned.
+The controller screenshot shows the maintainer's saved button configuration. The other screenshots use illustrative examples. New installations start with no actions assigned.
 
 ## Visual routines
 
@@ -60,6 +60,12 @@ automatically. A final **Switch** stays in the new window instead of returning.
 
 The catalogue clearly marks the selected routine. Selecting one does not run it;
 use **Test**, **Stop**, or the controller gesture you assigned.
+
+Windows actions can make a button perform a complete sequence: display the video
+window, click a saved point, then return to MyWhoosh. Open, activate, minimize and
+normal close steps work with named windows; Switch alternates between two targets.
+Clicks remain tied to physical screen positions, so reposition a target when its
+window moves. Windows activation is verified before targeted input is sent.
 
 ![Routine catalogue with one selected example routine](docs/images/routines.png)
 
@@ -80,16 +86,19 @@ repeated volume/video commands; mute is a single toggle per gesture.
 ## Language and gesture settings
 
 Settings is at the right of the navigation bar. Choose English or French under
-**General**, where gesture timing rules are also listed. **Manage presses** on the
+**General**, where you can edit the double-press window, Long/Hold thresholds and
+volume/video repeat intervals. Choose **Save** to apply them, or **Reset timings**
+to restore the default values. Each press keeps the timings captured when it began.
+**Manage presses** on the
 Buttons page enables or disables each gesture without discarding its assignment.
 
-![English and French language selection and gesture timing settings](docs/images/languages.png)
+![Language selection and five editable gesture timing settings](docs/images/languages.png)
 
 ## Download and install
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.3.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.4.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 
@@ -99,7 +108,7 @@ Wake the right controller and connect it in Swift Click. Start the MyWhoosh conn
 
 The Dashboard includes Open MyWhoosh alongside its connection states. It opens the installed game or brings its existing window forward; it does not establish the network connection. Routine results stay in Actions. The routine catalogue opens a separate editor for creation and modification, using prepared windows and positions. App icons help identify the selected windows.
 
-Under **Settings → Buttons → Manage presses**, enable the gestures you need. Simple triggers on release; when Double is enabled it waits up to 300 ms for a second brief press. Long triggers on release from 650 ms. Continuous hold starts at 1.5 seconds, repeating volume every 150 ms or video arrows every 400 ms. MyWhoosh arrows remain down until release. Gestures are exclusive, and disabled gestures keep their saved actions.
+Under **Settings → Buttons → Manage presses**, enable the gestures you need. With default timings, Simple triggers on release; when Double is enabled it waits up to 300 ms for a second brief press. Long triggers on release from 650 ms. Continuous hold starts at 1.5 seconds, repeating volume every 150 ms or video arrows every 400 ms. MyWhoosh arrows remain down until release. Gestures are exclusive, and disabled gestures keep their saved actions.
 
 Under **Actions → Windows**, save named windows and choose the MyWhoosh and Media defaults. Detection reads Windows media sessions and preserves existing selections. Window handles are not persisted; after restart, ambiguous targets require selection again. **Actions → Routines** builds a visual top-to-bottom sequence from these windows and saved positions. See the [clicks and routines guide](docs/ACTIONS.md) for examples and behaviour. Targeted clicks verify that the point is inside the selected window and not covered. Keyboard arrow behaviour for MyWhoosh junctions has not been verified; no route-selection guarantee is made.
 

@@ -28,6 +28,11 @@ its running window. Start session establishes Swift Click's connections separate
 
 ## Updates and removal
 
+1.4 adds editable timing controls under Settings → General. Missing values use
+the previous defaults. Save applies changes to new presses; active presses retain
+their existing timings. Assignments, named targets, language and connections are
+preserved. Versions before 1.4 ignore the custom durations and use their defaults.
+
 In 1.3, media controls are grouped together and include Mute / unmute. Gesture
 timing details are under Settings → General. Window switching is configured as
 a routine step; the old direct Switch windows choice is no longer offered.

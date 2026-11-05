@@ -72,6 +72,7 @@ switch windows manually, the routine stops instead of pulling focus back.
 ## Keep the controller simple
 
 Enable only the gestures you need in **Manage presses**. Simple reacts on release.
+The following durations are defaults; edit them under **Settings → General**.
 Double adds up to 300 ms of waiting to Simple. Long reacts on release after 650 ms.
 Continuous hold begins at 1.5 seconds and excludes the other gestures. Without
 Long, an earlier release remains Simple; without Long or Hold, a prolonged press
@@ -85,6 +86,25 @@ Media also includes **Mute / unmute**, which toggles Windows output mute once.
 Assign it to Simple, Double or Long; it is excluded from Continuous hold. Gesture
 timing details are displayed under **Settings → General**. The old direct Switch
 windows shortcut is no longer offered; add a Switch step to a named routine instead.
+
+## Adjustable durations
+
+Use **Settings → General → Button timing** to change the following values and
+choose **Save**. **Reset timings** fills in the defaults; save to confirm the reset.
+
+| Setting | Default | Range |
+| --- | --- | --- |
+| Double-press window | 300 ms | 100–600 ms |
+| Long press starts after | 650 ms | 200–2,000 ms |
+| Continuous hold starts after | 1,500 ms | 500–5,000 ms |
+| Volume repeat interval | 150 ms | 80–500 ms |
+| Video repeat interval | 400 ms | 150–2,000 ms |
+
+Hold must begin at least 100 ms after Long. The editor maintains this ordering.
+An in-progress press or double retains its timing snapshot; new presses use the
+saved settings. Timings do not change which actions support Continuous hold.
+
+![Editable gesture and repetition durations](images/languages.png)
 
 ## MyWhoosh service setup
 

@@ -416,5 +416,16 @@
   "Button gestures": "Appuis des boutons",
   "Left arrow": "Flèche gauche",
   "Right arrow": "Flèche droite",
-  "Running…": "En cours…"
+  "Running…": "En cours…",
+  "Button timing": "Durées des appuis",
+  "Double-press window": "Délai entre deux appuis",
+  "Long press starts after": "Début de l’appui long",
+  "Continuous hold starts after": "Début du maintien continu",
+  "Volume repeat interval": "Répétition du volume",
+  "Video repeat interval": "Répétition de la vidéo",
+  "Reset timings": "Réinitialiser les durées",
+  "Continuous hold must start at least 100 ms after Long": "Le maintien doit commencer au moins 100 ms après l’appui long",
+  "Gesture timing outside the allowed range": "Durée hors de la plage autorisée",
+  "Decrease": "Diminuer",
+  "Increase": "Augmenter"
 }
