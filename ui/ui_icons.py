@@ -1,8 +1,9 @@
 """Small vector interface icons and cached native application icons."""
 from PySide6.QtCore import Qt, QRect, QRectF, QPointF, QFileInfo
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QPainterPath
+from PySide6.QtGui import QIconEngine, QIcon, QPixmap, QPainter, QPen, QColor, QPainterPath
 from PySide6.QtWidgets import QFileIconProvider, QLabel
 from pathlib import PureWindowsPath
+from ui_theme import color as theme_color
 
 _CACHE = {}
 
@@ -14,7 +15,7 @@ def application_name(path):
     return names.get(stem.casefold(), stem[:40] or "Window")
 
 
-def icon(name, color="#287e68"):
+def _render_icon(name, color):
     key = (name,color)
     if key in _CACHE:
         return _CACHE[key]
@@ -91,6 +92,37 @@ def icon(name, color="#287e68"):
         painter.drawLine(12,3,12,13)
         painter.drawLine(8,9,12,13)
         painter.drawLine(16,9,12,13)
+    elif name in ("volume_up", "volume_down", "volume_mute"):
+        path = QPainterPath(QPointF(3, 9))
+        for x, y in ((7, 9), (12, 5), (12, 19), (7, 15), (3, 15), (3, 9)):
+            path.lineTo(x, y)
+        painter.drawPath(path)
+        if name == "volume_mute":
+            painter.drawLine(16, 9, 21, 15)
+            painter.drawLine(21, 9, 16, 15)
+        else:
+            painter.drawLine(16, 12, 22, 12)
+            if name == "volume_up":
+                painter.drawLine(19, 9, 19, 15)
+    elif name in ("media_previous", "media_next", "seek_back", "seek_forward", "media_play_pause"):
+        if name in ("media_previous", "seek_back"):
+            painter.translate(24, 0)
+            painter.scale(-1, 1)
+        path = QPainterPath(QPointF(5, 5))
+        path.lineTo(15, 12)
+        path.lineTo(5, 19)
+        path.closeSubpath()
+        painter.drawPath(path)
+        if name == "media_play_pause":
+            painter.drawLine(18, 6, 18, 18)
+            painter.drawLine(22, 6, 22, 18)
+        elif name in ("media_previous", "media_next"):
+            painter.drawLine(19, 5, 19, 19)
+        else:
+            path = QPainterPath(QPointF(14, 5))
+            path.lineTo(22, 12)
+            path.lineTo(14, 19)
+            painter.drawPath(path)
     elif name == "clock":
         painter.drawEllipse(QRectF(3,3,18,18))
         painter.drawLine(12,7,12,12)
@@ -118,6 +150,32 @@ def icon(name, color="#287e68"):
     return result
 
 
+class ThemeIconEngine(QIconEngine):
+    """Resolve symbol ink at paint time, including icons in existing list items."""
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def clone(self):
+        return ThemeIconEngine(self.name)
+
+    def paint(self, painter, rect, mode, state):
+        ink = theme_color("disabled" if mode == QIcon.Mode.Disabled else "muted")
+        _render_icon(self.name, ink).paint(painter, rect, Qt.AlignmentFlag.AlignCenter, QIcon.Mode.Normal, state)
+
+    def pixmap(self, size, mode, state):
+        result = QPixmap(size)
+        result.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(result)
+        self.paint(painter, result.rect(), mode, state)
+        painter.end()
+        return result
+
+
+def icon(name, color=None):
+    return _render_icon(name, color) if color else QIcon(ThemeIconEngine(name))
+
+
 def application_icon(path):
     key = ("app",path)
     if key not in _CACHE:
@@ -134,7 +192,10 @@ def action_icon(action):
         return QIcon()
     if action == "routine":
         return icon("routine")
-    return icon("system","#3278bb")
+    names = {"mouse_click": "click", "mouse_position": "position", "switch_windows": "windows"}
+    if action.startswith(("volume_", "media_", "seek_")):
+        return icon(action)
+    return icon(names.get(action, "system"))
 
 
 class IconBadge(QLabel):
@@ -142,7 +203,7 @@ class IconBadge(QLabel):
         super().__init__()
         self.picture = icon(name)
         self.setFixedSize(size,size)
-        self.setStyleSheet("background:#eaf5ef;border-radius:11px;")
+        self.setObjectName("iconBadge")
 
     def set_icon(self, value):
         self.picture = value

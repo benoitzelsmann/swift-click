@@ -1,6 +1,6 @@
-# Swift Click 1.7.1 compatibility
+# Swift Click 2.0.0 compatibility
 
-1.7.1 is a public unsigned Windows beta. The following separates implemented
+2.0.0 is a public unsigned Windows beta. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
@@ -40,7 +40,7 @@ Five editable timing controls were added in 1.4.0. Existing configurations recei
   These checks exercised switching, not media playback or physical controller input.
 - Installer checks include x64 payload, resources, Per-Monitor V2/asInvoker
   manifest, isolated startup/migration/running-app upgrade/uninstall, and user-data
-  preservation. The 1.7.1 upgrade was checked on the development PC.
+  preservation. The 2.0.0 upgrade was checked on the development PC.
 
 ## Remaining qualification
 

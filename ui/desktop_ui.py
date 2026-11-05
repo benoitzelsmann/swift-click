@@ -42,56 +42,8 @@ COLORS = {
     "b": "#f64098",
     "plus": "#253246",
 }
-STYLE = """
-QWidget { color:#18202b; font-family:'Segoe UI'; font-size:14px; }
-QMainWindow, QWidget#shell, QWidget#page { background:#f4f5f7; }
-QFrame#header { background:white; border-bottom:1px solid #e5e7ed; }
-QPushButton#assignment { background:#f5f6f8; border:1px solid #d5dce4; border-radius:6px; padding:4px 7px; font-weight:500; }
-QPushButton#assignment:hover { border-color:#86b6a5; color:#14674e; }
-QPushButton#choice { background:#f5f6f8; border:1px solid transparent; border-radius:6px; padding:8px 10px; }
-QPushButton#choice:checked { background:#dff2e9; border-color:#78ae96; color:#14523e; }
-QPushButton#choice:hover { border-color:#6d9e8c; }
-QPushButton#category { background:#f7f8fa; border:1px solid #e1e5eb; border-radius:7px; text-align:left; padding:12px 16px; }
-QPushButton#category:hover { background:#edf0f4; border-color:#b8c2ce; }
-QLabel#brand { font-size:18px; font-weight:700; }
-QLabel#title { font-size:24px; font-weight:700; }
-QLabel#muted { color:#626d7c; }
-QFrame#card { background:white; border:1px solid #e1e5eb; border-radius:12px; }
-QFrame#binding { background:#fbfcfd; border:1px solid #d7dfe7; border-radius:10px; }
-QFrame#binding[selected="true"] { background:#edf6f2; border-color:#86b6a5; }
-QPushButton { background:white; border:1px solid #dfe3e9; border-radius:8px; padding:8px 16px; font-weight:600; }
-QPushButton:hover { background:#f1f3f8; border-color:#c0c8d7; }
-QPushButton:pressed { background:#e7ebf3; }
-QPushButton#primary { background:#202632; color:white; border:1px solid #202632; }
-QPushButton#primary:hover { background:#384357; }
-QPushButton#primary:disabled, QPushButton:disabled { color:#a2a8b2; background:#f2f3f6; border-color:#e8ebef; }
-QPushButton#nav { border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; color:#626d7c; padding:15px 12px; }
-QPushButton#nav:checked { color:#18202b; border-bottom-color:#18202b; background:transparent; }
-QFrame#subnav { background:white; border-bottom:1px solid #e5e7ed; }
-QPushButton#subnavButton { border:1px solid transparent; background:transparent; color:#626d7c; padding:5px 13px; }
-QPushButton#subnavButton:checked { color:#164e3d; background:#e4f3ec; border-color:#287e68; }
-QPushButton#disclosureButton { border:1px solid #dfe3e9; background:#f6f8f9; text-align:left; padding:6px 12px; }
-QPushButton#disclosureButton:hover { border-color:#86b6a5; }
-QPushButton#disclosureButton:checked { background:#e4f3ec; border-color:#78ae96; color:#164e3d; }
-QFrame#separator { background:#e8ebef; border:0; }
-QLabel#eyebrow { color:#287e68; font-size:12px; font-weight:600; }
-QScrollArea { border:0; background:#f4f5f7; }
-QScrollBar:vertical { background:#edf0f3; width:8px; margin:0; }
-QScrollBar::handle:vertical { background:#b8c3ca; border-radius:4px; min-height:30px; }
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
-QPushButton:checked { background:#e4f3ec; color:#14674e; }
-QPushButton#quiet { border:1px solid transparent; background:transparent; color:#626d7c; padding:3px 5px; }
-QComboBox, QSpinBox, QDoubleSpinBox, QLineEdit { background:#f6f7fa; border:1px solid #dce2e9; border-radius:7px; padding:6px 10px; min-height:24px; }
-QComboBox:hover, QSpinBox:hover, QDoubleSpinBox:hover { border-color:#b6bfd0; }
-QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QLineEdit:focus { border-color:#287e68; }
-QComboBox::drop-down { border:0; width:18px; }
-QComboBox QAbstractItemView { background:white; selection-background-color:#e9edff; color:#18202b; border:1px solid #e1e5eb; }
-QTextEdit { background:white; border:1px solid #e1e5eb; border-radius:6px; padding:8px; color:#626d7c; font-size:12px; }
-QListWidget, QWidget#emptyPositions { border:1px solid transparent; background:#f7f9f8; border-radius:8px; padding:6px; }
-QListWidget::item { padding:12px; margin-bottom:5px; border-radius:8px; }
-QListWidget::item:selected { background:#e4f3ec; color:#14674e; }
-QStatusBar { background:#f4f5f7; color:#626d7c; }
-"""
+from ui_theme import stylesheet, color
+STYLE = stylesheet("light")
 
 
 def label(text, name=None, size=None):
@@ -608,7 +560,7 @@ class ControllerEditor(QWidget):
         badge.setFixedSize(25, 25)
         badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ink = "white" if key == "plus" else "#101822"
-        badge.setStyleSheet(f"background:{COLORS[key]};color:{ink};border-radius:12px;font-weight:700")
+        badge.setStyleSheet(f"background:{COLORS[key]};color:{ink};border-radius:8px;font-weight:700")
         grid.addWidget(badge, 0, 0, 4, 1)
         for row,kind in enumerate(GESTURES):
             title = GESTURE_NAMES[kind]
@@ -681,7 +633,7 @@ def build_ui(w):
     outer.setSpacing(0)
     header = QFrame()
     header.setObjectName("header")
-    header.setFixedHeight(54)
+    header.setFixedHeight(64)
     nav = QHBoxLayout(header)
     nav.setContentsMargins(32, 0, 32, 0)
     nav.addWidget(label("Swift Click", "brand"))
@@ -960,10 +912,10 @@ def refresh_ui(w):
         (w.ble_status, status["connected"]),
         (w.dashboard_states[1], status["connected"]),
     ):
-        color = "#168064" if active else "#626d7c"
-        if field.property("statusColor") != color:
-            field.setStyleSheet(f"color:{color};font-weight:600")
-            field.setProperty("statusColor", color)
+        status_color = color("success" if active else "muted")
+        if field.property("statusColor") != status_color:
+            field.setStyleSheet(f"color:{status_color};font-weight:500")
+            field.setProperty("statusColor", status_color)
     w.editor.set_pressed(status["pressed"])
     if w.editor.settings.currentIndex() == 1 and w.editor.rendered_language != language():
         w.editor.refresh_usage()

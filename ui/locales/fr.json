@@ -453,5 +453,8 @@
   "Invalid captured window": "Fenêtre capturée invalide",
   "Invalid position preview": "Aperçu de la position invalide",
   "Choose two different browser tabs": "Choisissez deux onglets différents",
-  "Activated": "Cible activée"
+  "Activated": "Cible activée",
+  "Appearance": "Apparence",
+  "Light": "Clair",
+  "Dark": "Sombre"
 }

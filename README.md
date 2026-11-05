@@ -2,7 +2,7 @@
 
 Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
 
-[Download 1.7.1 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.7.1/SwiftClick-1.7.1-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.7.1) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download 2.0.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v2.0.0/SwiftClick-2.0.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v2.0.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 <img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
 
@@ -35,6 +35,7 @@ Base already removes the daily button-action limit. Pro is not required simply t
 - Save named windows or specific Edge and Chrome tabs, with automatic MyWhoosh/media detection.
 - Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
 - Click at the current pointer position or save a point with a local preview and its associated window.
+- Choose Light or Dark under **Settings → General → Appearance**. Swift Click remembers your choice.
 - Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
 
@@ -42,7 +43,9 @@ No browser extension, Swift Click account or telemetry is required. Video contro
 
 ![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
 
-The controller screenshot shows the maintainer's saved button configuration. The other screenshots use illustrative examples. New installations start with no actions assigned.
+The screenshots use illustrative examples. New installations start with no actions assigned.
+
+<img src="docs/images/dark-appearance.png" alt="Swift Click in dark mode, with appearance and language controls" width="660">
 
 ## Visual routines
 
@@ -118,7 +121,7 @@ Buttons page enables or disables each gesture without discarding its assignment.
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.7.1 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 2.0.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 

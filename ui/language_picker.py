@@ -15,14 +15,7 @@ class FlagButton(KeyboardButton):
         self.setObjectName("languageChoice")
         self.setAccessibleName(name)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setMinimumHeight(66)
-        self.setStyleSheet("""
-            QPushButton#languageChoice { text-align:left; padding:12px 16px 12px 76px;
-                border-radius:12px; background:#f7f9fc; border:1px solid #dfe5ec; }
-            QPushButton#languageChoice:hover { background:#edf3f7; border-color:#9aaabd; }
-            QPushButton#languageChoice:checked { background:#e7f3ed; border:2px solid #287e68; }
-            QPushButton#languageChoice:focus { border-color:#287e68; }
-        """)
+        self.setMinimumHeight(54)
 
     def paintEvent(self, event):
         super().paintEvent(event)

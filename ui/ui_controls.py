@@ -2,6 +2,7 @@
 
 from PySide6.QtCore import Qt, QSize, QRectF, QVariantAnimation, QEasingCurve
 from i18n import apply_widgets
+from ui_theme import color
 from PySide6.QtGui import QColor, QPainter, QCursor, QPen
 from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
@@ -23,7 +24,7 @@ class KeyboardButton(QPushButton):
         painter.drawControl(QStyle.ControlElement.CE_PushButton, option)
         if self.hasFocus() and self.window().testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setPen(QPen(QColor("#287e68"),2))
+            painter.setPen(QPen(QColor(color("focus")),2))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRoundedRect(self.rect().adjusted(2,2,-3,-3),6,6)
 
@@ -63,7 +64,7 @@ def number_stepper(field,title):
     field.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
     field.setAlignment(Qt.AlignmentFlag.AlignCenter)
     field.setFixedWidth(120)
-    field.lineEdit().setStyleSheet('background:transparent;border:0;padding:0;min-height:0;color:#18202b;selection-background-color:#dff2e9;selection-color:#14523e;')
+    field.lineEdit().setStyleSheet('background:transparent;border:0;padding:0;min-height:0;')
     controls=QWidget()
     line=QHBoxLayout(controls)
     line.setContentsMargins(0,0,0,0)
@@ -104,13 +105,7 @@ class CatalogList(SelectionList):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setIconSize(QSize(30, 30))
-        self.setStyleSheet("""
-            QListWidget { background:white; border:0; padding:0; }
-            QListWidget::item { background:#f6f8f8; border:2px solid transparent;
-                border-radius:8px; padding:10px; margin-bottom:6px; }
-            QListWidget::item:hover { border-color:#b6d0c5; }
-            QListWidget::item:selected { background:#e4f3ec; border-color:#287e68; color:#164e3d; }
-        """)
+        self.setObjectName("catalog")
 
 
 def message_box(parent, title, text, *, question=False, warning=False, accept="Confirm"):
@@ -125,15 +120,6 @@ def message_box(parent, title, text, *, question=False, warning=False, accept="C
     box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
                            if question else QMessageBox.StandardButton.Ok)
     box.setDefaultButton(QMessageBox.StandardButton.No if question else QMessageBox.StandardButton.Ok)
-    box.setStyleSheet("""
-        QMessageBox { background:#ffffff; color:#18202b; }
-        QMessageBox QLabel { background:transparent; color:#18202b; font-size:13px; }
-        QMessageBox QLabel#qt_msgbox_label { font-size:17px; font-weight:600; }
-        QMessageBox QLabel#qt_msgbox_informativelabel { color:#495462; min-width:390px; }
-        QMessageBox QPushButton { background:#ffffff; color:#18202b; min-width:80px;
-            border:1px solid #dfe3e9; border-radius:6px; padding:8px 14px; }
-        QMessageBox QPushButton:default { background:#202632; color:#ffffff; border-color:#202632; }
-    """)
     if question:
         box.button(QMessageBox.StandardButton.Yes).setText(accept)
         box.button(QMessageBox.StandardButton.No).setText("Cancel")
@@ -224,16 +210,20 @@ class ToggleSwitch(QCheckBox):
         top = (self.height() - 24) / 2
         track = QRectF(3, top, 44, 24)
         if self.isEnabled():
-            track_color = "#287e68" if self.isChecked() else "#d5dce3"
-            text_color = "#18202b"
+            track_color = color("focus") if self.isChecked() else color("strong_border")
+            text_color = color("text")
         else:
-            track_color = "#a0b9b0" if self.isChecked() else "#e3e7ec"
-            text_color = "#929ba7"
+            track_color = color("selection") if self.isChecked() else color("disabled_surface")
+            text_color = color("disabled")
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QColor(track_color))
         painter.drawRoundedRect(track, 12, 12)
         painter.setBrush(QColor("#ffffff" if self.isEnabled() else "#f5f7f9"))
         painter.drawEllipse(QRectF(track.left() + 2 + self.offset * 20, top + 2, 20, 20))
+        if self.hasFocus() and self.window().testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
+            painter.setPen(QPen(QColor(color("focus")), 2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(track.adjusted(-2, -2, 2, 2), 14, 14)
         painter.setPen(QColor(text_color))
         painter.setFont(self.font())
         painter.drawText(QRectF(59, 0, self.width() - 59, self.height()),

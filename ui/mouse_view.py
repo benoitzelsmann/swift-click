@@ -141,7 +141,7 @@ class MousePage(QWidget):
     def preview_label(self):
         widget = label("")
         widget.setAccessibleName("Captured mouse position preview")
-        widget.setStyleSheet("background:#f4f5f7;border:1px solid #dfe3e9;border-radius:6px;padding:4px")
+        widget.setObjectName("preview")
         widget.hide()
         return widget
 

@@ -31,12 +31,29 @@ def build_about_pages(w):
     page, box = make_page("General")
     surface, content = card()
     box.addWidget(surface)
-    content.addWidget(label("Language", size=18))
+    from PySide6.QtWidgets import QHBoxLayout, QButtonGroup
+    appearance_row = QHBoxLayout()
+    appearance_row.addWidget(label("Appearance", size=16), 1)
+    w.appearance_group = QButtonGroup(w)
+    w.appearance_buttons = {}
+    for mode, title in (("light", "Light"), ("dark", "Dark")):
+        button = push(title, lambda checked=False, value=mode: w.change_appearance(value))
+        button.setMinimumWidth(110)
+        button.setCheckable(True)
+        button.setChecked(w.appearance == mode)
+        button.setAccessibleName(title)
+        w.appearance_group.addButton(button)
+        w.appearance_buttons[mode] = button
+        appearance_row.addWidget(button)
+    content.addLayout(appearance_row)
+    language_row = QHBoxLayout()
+    language_row.addWidget(label("Language", size=16), 1)
     w.language_select = LanguagePicker()
     w.language_select.setAccessibleName("Language")
     w.language_select.setCurrentIndex(w.language_select.findData(language()))
     w.language_select.currentIndexChanged.connect(lambda _: w.change_language(w.language_select.currentData()))
-    content.addWidget(w.language_select)
+    language_row.addWidget(w.language_select, 2)
+    content.addLayout(language_row)
     from timing_view import TimingSettings
     w.timing_settings=TimingSettings(w)
     box.addWidget(w.timing_settings)

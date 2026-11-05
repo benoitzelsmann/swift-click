@@ -1,3 +1,4 @@
+from ui_theme import color
 """Accessible, reorderable routine nodes with painted connectors."""
 import copy
 from PySide6.QtCore import Qt,QSize,QPointF,QRect,QMimeData,Signal
@@ -62,10 +63,10 @@ class FlowDelegate(QStyledItemDelegate):
         rect = option.rect.adjusted(42,4,-4,-14)
         center = option.rect.left()+18
         mid = rect.center().y()
-        painter.setPen(QPen(QColor("#73988e"),2))
+        painter.setPen(QPen(QColor(color("strong_border")),2))
         if index.row():
             painter.drawLine(center,option.rect.top(),center,mid-16)
-            painter.setBrush(QColor("#86ae9b"))
+            painter.setBrush(QColor(color("strong_border")))
             painter.drawPolygon(QPolygonF([QPointF(center-4,mid-21),QPointF(center+4,mid-21),QPointF(center,mid-16)]))
         if index.row() < index.model().rowCount()-1:
             painter.drawLine(center,mid+15,center,option.rect.bottom()+1)
@@ -75,7 +76,7 @@ class FlowDelegate(QStyledItemDelegate):
         cfg = view.config()
         problem = step_problem(step,cfg)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor("#185f50" if selected else "#e7eeec"))
+        painter.setBrush(QColor(color("accent") if selected else color("subtle")))
         number_rect = QRect(center-14,mid-14,28,28)
         painter.drawEllipse(number_rect)
         font = painter.font()
@@ -83,13 +84,13 @@ class FlowDelegate(QStyledItemDelegate):
         font.setPixelSize(13)
         font.setBold(True)
         painter.setFont(font)
-        painter.setPen(QColor("#ffffff" if selected else "#244a40"))
+        painter.setPen(QColor(color("on_accent") if selected else color("muted")))
         painter.drawText(number_rect,Qt.AlignmentFlag.AlignCenter,str(index.row()+1))
-        painter.setPen(QPen(QColor("#b6533d" if problem else "#277961" if selected else "#ccd7d2"),2 if selected else 1))
-        painter.setBrush(QColor("#f0f8f4" if selected else "#ffffff"))
+        painter.setPen(QPen(QColor(color("danger") if problem else color("focus") if selected else color("border")),2 if selected else 1))
+        painter.setBrush(QColor(color("selection") if selected else color("surface")))
         painter.drawRoundedRect(rect,10,10)
         symbol_rect = QRect(rect.left()+12,rect.top()+12,22,22)
-        icon(SYMBOLS[step["action"]],"#a74f3c" if problem else "#287e68").paint(painter,symbol_rect)
+        icon(SYMBOLS[step["action"]],color("danger") if problem else color("focus")).paint(painter,symbol_rect)
         target = cfg["windows"].get(step.get("window_id"),{})
         if step["action"] != "wait":
             logo = action_icon("shift_up" if "mywhoosh" in target.get("path","").casefold() else "mouse_click")
@@ -98,13 +99,13 @@ class FlowDelegate(QStyledItemDelegate):
         font.setPixelSize(15)
         font.setBold(True)
         painter.setFont(font)
-        painter.setPen(QColor("#18202b"))
+        painter.setPen(QColor(color("text")))
         text_rect = rect.adjusted(44,8,-36,-35)
         painter.drawText(text_rect,Qt.AlignmentFlag.AlignVCenter,painter.fontMetrics().elidedText(title,Qt.TextElideMode.ElideRight,text_rect.width()))
         font.setPixelSize(13)
         font.setBold(False)
         painter.setFont(font)
-        painter.setPen(QColor("#a74f3c" if problem else "#334638"))
+        painter.setPen(QColor(color("danger") if problem else color("muted")))
         text_rect = rect.adjusted(14,38,-12,-10)
         text = tr(problem) if problem else target
         painter.drawText(text_rect,Qt.AlignmentFlag.AlignVCenter,painter.fontMetrics().elidedText(text,Qt.TextElideMode.ElideRight,text_rect.width()))
@@ -199,7 +200,7 @@ class FlowList(SelectionList):
         if self.drop_row is not None:
             y = self.visualItemRect(self.item(self.drop_row)).top() if self.drop_row < self.count() else self.visualItemRect(self.item(self.count()-1)).bottom()+1 if self.count() else 4
             painter = QPainter(self.viewport())
-            painter.setPen(QPen(QColor("#22765d"),3))
+            painter.setPen(QPen(QColor(color("focus")),3))
             painter.drawLine(42,y,self.viewport().width()-5,y)
 
     def set_step(self, row, step):
