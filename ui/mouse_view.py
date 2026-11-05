@@ -11,6 +11,7 @@ import mouse_controls
 from desktop_ui import card, label, push, make_page, show_page, PAGE_BUTTONS
 from ui_controls import SelectionList, CountdownOverlay, confirm_dialog
 from i18n import tr
+from settings import routine_references
 from ui_icons import icon
 from PySide6.QtCore import QSize
 
@@ -32,7 +33,7 @@ class MousePage(QWidget):
         page, body = make_page("Mouse positions",action=self.add)
         body.setSpacing(16)
         layout.addWidget(page)
-        body.addWidget(label("Capture a screen point, then assign it to a button.","muted"))
+        body.addWidget(label("Save a screen point without clicking. Use it directly on a button, or in a routine that activates its window first.","muted"))
         self.columns_surface = QWidget()
         columns = QHBoxLayout(self.columns_surface)
         columns.setContentsMargins(0,0,0,0)
@@ -372,23 +373,24 @@ class MousePage(QWidget):
                     uses.append(f"{'+' if key == 'plus' else key.upper()} · " +
                                 {"short":"Simple","double":"Double","long":"Long","hold":"Continuous hold"}[gesture])
         routines = [routine["name"] for routine in self.window.controller.config["routines"].values()
-                    if routine["position_id"] == ident]
+                    if routine_references(routine,self.window.controller.config,position_id=ident)]
         uses.extend(routines)
         text = f"Delete “{self.points()[ident]['name']}”?"
         if routines:
-            text += "\n" + tr("Routines using this position will also be deleted.")
+            text += "\n" + tr("Routines using this position will need a new target.")
         if uses:
             text += "\nThese assignments will be set to None.\n" + "\n".join(uses)
         if not confirm_dialog(self,"Delete position",text,accept="Delete"):
             return
         config = copy.deepcopy(self.window.controller.config)
         del config["positions"][ident]
-        removed = {rid for rid,routine in config["routines"].items() if routine["position_id"] == ident}
-        for rid in removed:
-            del config["routines"][rid]
+        for routine in config["routines"].values():
+            for step in routine["steps"]:
+                if step.get("position_id") == ident:
+                    step["position_id"] = None
         for mapping in config["buttons"].values():
             for kind,binding in mapping.items():
-                if isinstance(binding,dict) and (binding.get("position_id") == ident or binding.get("routine_id") in removed):
+                if isinstance(binding,dict) and binding.get("position_id") == ident:
                     mapping[kind] = "none"
         try:
             self.persist(config)

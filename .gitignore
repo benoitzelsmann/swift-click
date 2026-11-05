@@ -7,6 +7,8 @@ controller.json
 controller.pre-v2.json
 controller.pre-v3.json
 window_actions.py
+window_discovery.py
+controller.pre-v4.json
 settings.py
 server.py
 media_controls.py

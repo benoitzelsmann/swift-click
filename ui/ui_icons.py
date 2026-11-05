@@ -65,6 +65,21 @@ def icon(name, color="#287e68"):
         painter.drawLine(10,14,21,3)
         painter.drawLine(14,3,21,3)
         painter.drawLine(21,3,21,10)
+    elif name == "close":
+        painter.drawLine(6,6,18,18)
+        painter.drawLine(18,6,6,18)
+    elif name == "minimize":
+        painter.drawLine(4,18,20,18)
+        painter.drawLine(12,3,12,13)
+        painter.drawLine(8,9,12,13)
+        painter.drawLine(16,9,12,13)
+    elif name == "clock":
+        painter.drawEllipse(QRectF(3,3,18,18))
+        painter.drawLine(12,7,12,12)
+        painter.drawLine(12,12,16,14)
+    elif name == "detect":
+        painter.drawEllipse(QRectF(3,3,13,13))
+        painter.drawLine(15,15,21,21)
     else:
         painter.drawEllipse(QRectF(4,4,16,16))
         painter.drawLine(10,8,16,12)

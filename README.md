@@ -32,7 +32,8 @@ Base already removes the daily button-action limit. Pro is not required simply t
 - Enable Simple, Double, Long and Continuous hold independently on each button.
 - Control Windows volume, play/pause and previous/next tracks.
 - Target a selected video window for left/right navigation, or MyWhoosh for its own arrow keys.
-- Switch between two selected windows, or run guided show/seek/click-and-return routines.
+- Save named windows, with automatic MyWhoosh/media detection.
+- Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
 - Click at the current pointer position or at named points saved on your displays.
 - Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
@@ -47,19 +48,19 @@ No browser extension, Swift Click account or telemetry is required. Video contro
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.1.1 package is an unsigned draft release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.2.0 package is an unsigned draft release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 
 ## Controller setup
 
-Wake the right controller and connect it in Swift Click. Start the MyWhoosh connection and accept it in MyWhoosh. The app includes illustrated connection guides. Configure assignments in Settings → Buttons. Actions groups Mouse positions, Windows and Routines, in preparation order.
+Wake the right controller and connect it in Swift Click. Start the MyWhoosh connection and accept it in MyWhoosh. The app includes illustrated connection guides. If MyWhoosh displays **Dircon Service Unavailable**, choose **YES**, complete installation, then **close and restart MyWhoosh** before connecting. Configure assignments in Settings → Buttons. Actions groups Mouse positions, Windows and Routines, in preparation order.
 
 The Dashboard includes Open MyWhoosh alongside its connection states. It opens the installed game or brings its existing window forward; it does not establish the network connection. Routine results stay in Actions. The routine catalogue opens a separate editor for creation and modification, using prepared windows and positions. App icons help identify the selected windows.
 
 Under **Settings → Buttons → Manage presses**, enable the gestures you need. Simple triggers on release; when Double is enabled it waits up to 300 ms for a second brief press. Long triggers on release from 650 ms. Continuous hold starts at 1.5 seconds, repeating volume every 150 ms or video arrows every 400 ms. MyWhoosh arrows remain down until release. Gestures are exclusive, and disabled gestures keep their saved actions.
 
-Under **Actions → Windows**, select MyWhoosh and one Video window. Window handles are not persisted; after restart, ambiguous targets require selection again. **Actions → Routines** offers guided show-window, seek-video-and-return and click-position-and-return templates. Targeted clicks verify that the point is inside the selected window and not covered. Keyboard arrow behaviour for MyWhoosh junctions has not been verified; no route-selection guarantee is made.
+Under **Actions → Windows**, save named windows and choose the MyWhoosh and Media defaults. Detection reads Windows media sessions and preserves existing selections. Window handles are not persisted; after restart, ambiguous targets require selection again. **Actions → Routines** builds a visual top-to-bottom sequence from these windows and saved positions. See the [clicks and routines guide](docs/ACTIONS.md) for examples and behaviour. Targeted clicks verify that the point is inside the selected window and not covered. Keyboard arrow behaviour for MyWhoosh junctions has not been verified; no route-selection guarantee is made.
 
 An optional experimental keep-awake mode is limited to the tested right controller firmware 1.2.0. It uses the controller's firmware-update mechanism and can erase its secondary firmware slot. Activation requires the explanation and consent shown in the app. Long-session validation is still pending.
 

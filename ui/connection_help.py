@@ -46,12 +46,13 @@ MYWHOOSH_STEPS = (
          "Click <b>Connect</b> above to start the Swift Click connection. "
          "If using two devices, connect both to the same local network.",
          "help/mywhoosh-lan.png", "Blue LAN means networking is enabled. The handlebar icon may still be white."),
-    Step("Allow Bonjour if prompted",
+    Step("Install the connection service",
          "Click the <b>handlebar icon on the far right</b>, which represents OpenBikeControl. "
-         "If MyWhoosh asks to install <b>Bonjour</b>, accept: it enables network discovery. "
-         "Follow any restart instructions, then click the handlebar again. "
+         "If <b>Dircon Service Unavailable</b> appears, choose <b>YES</b> and complete the installation. "
+         "Then <b>close and restart MyWhoosh</b> before connecting again. "
+         "Allow Bonjour installation if requested for network discovery. "
          "If there is no prompt, continue to the next step.",
-         "help/mywhoosh-lan.png", "The handlebar opens the OpenBikeControl connection used by Swift Click."),
+         "help/mywhoosh-service.png", "Choose YES, finish installation, then restart MyWhoosh."),
     Step("Accept the connection",
          "When <b>OpenBikeControl Instance Found</b> appears in MyWhoosh, "
          "click <b>YES</b> to allow the Swift Click connection.",
@@ -74,9 +75,9 @@ CONTROLLER_STEPS = (
          "the Button input indicator confirms reception even if no action is assigned yet.",
          "click-right.png", "The battery level appears when the controller reports it."),
     Step("Assign actions",
-         "Open <b>Settings → Buttons</b> to configure Short, Long and Hold. "
+         "Open <b>Settings → Buttons</b> to enable Simple, Double, Long or Continuous hold and assign actions. "
          "To control MyWhoosh, connect it under <b>Connections → MyWhoosh</b> as well. "
-         "Set up click targets under <b>Settings → Mouse positions</b>.",
+         "Save click targets under <b>Actions → Mouse positions</b>. Create sequences under <b>Actions → Routines</b>.",
          "click-right.png", "Connection settings and button assignments have separate pages."),
 )
 

@@ -418,7 +418,9 @@ class ControllerEditor(QWidget):
         self.refresh_usage()
         self.group_title.setText(tr(group))
         self.action_note.setText("Keep keyboard focus on the video player inside the selected browser window." if group == "Video" else
-                                 "MyWhoosh arrows are separate from gears. Route selection is not verified." if group == "MyWhoosh" else "")
+                                 "MyWhoosh arrows are separate from gears. Route selection is not verified." if group == "MyWhoosh" else
+                                 "Left click uses the current pointer. A saved position moves, clicks once, then restores the pointer. Use a routine to activate a specific window first." if group == "Mouse" else
+                                 "A routine runs its saved actions in order, once per gesture. Configure it under Actions → Routines." if group == "Windows & routines" else "")
         self.action_note.setVisible(bool(self.action_note.text()))
         for cell in self.option_cells.values():
             self.action_grid.removeWidget(cell)
@@ -873,7 +875,10 @@ def refresh_ui(w):
         w.routines_page.reload()
     if w.windows_page.rendered_language != language():
         w.windows_page.reload()
-    w.windows_page.result.setText(w.controller.windows.result)
+    if w.windows_page.opening:
+        w.windows_page.result.setText(w.controller.windows.result)
+    if w.routines_page.testing:
+        w.routines_page.result.setText(w.controller.windows.result)
     w.open_game_button.setEnabled(not w.opening_game and not w.closing)
     w.open_game_button.setText("Opening…" if w.opening_game else "Open MyWhoosh")
     running = bool(w.service_task and not w.service_task.done())

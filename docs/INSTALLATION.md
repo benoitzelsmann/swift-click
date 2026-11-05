@@ -28,6 +28,17 @@ its running window. Start session establishes Swift Click's connections separate
 
 ## Updates and removal
 
+Version 1.2 adds a window catalogue and visual routine sequences. The upgrade from
+1.1 saves `controller.pre-v4.json` and converts existing routines without changing
+their button assignments. Windows and mouse positions have stable references;
+renaming them keeps routines intact. Deleting one leaves affected routines marked
+as needing configuration, rather than silently retargeting an action.
+
+To return to 1.1, close Swift Click normally and back up the full
+`%LOCALAPPDATA%\SwiftClick` folder. Install the previous installer and copy
+`controller.pre-v4.json` to `controller.json` before starting it. Do not open the
+1.2 configuration with the older application.
+
 Run the newer installer. It reuses the existing folder and requests a normal app
 shutdown so Bluetooth cleanup can finish. If shutdown does not complete, the
 installation stops rather than forcing the app to close.

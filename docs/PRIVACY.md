@@ -9,9 +9,13 @@ account. A local mouse-motion detector preserves physical pointer movements when
 restoring the pointer after a click. Mouse actions do not require screen recording.
 
 Selecting a window reads the titles and application paths of open windows. Only
-the two selected application identities and titles are saved locally, along with
+the saved application identities and titles are stored locally, along with
 named routine settings. Temporary window handles stay in memory for the session.
 They are not uploaded. No browser page contents are read.
+Automatic detection reads media sessions exposed by Windows, including application
+identifiers and current media titles, to match an open player window. Media titles
+are used in memory only and are not logged or uploaded. Detection does not inspect
+browser history or page contents. Ambiguous matches require a manual selection.
 The Open MyWhoosh button looks up MyWhoosh's local Start-menu registration. It
 does not send an installation inventory to a server.
 

@@ -1,4 +1,4 @@
-# Compatibility and 1.1.1 draft status
+# Compatibility and 1.2.0 draft status
 
 | Component | Windows release candidate |
 | --- | --- |
@@ -8,7 +8,7 @@
 | MyWhoosh | Network connection through OpenBikeControl |
 | Media | Windows media and volume commands |
 | Video navigation | Complete left/right key presses to the selected Video window; player needs keyboard focus |
-| Window control | Two selected targets, verified foreground, guided routines |
+| Window control | Named targets, MyWhoosh/media detection, verified foreground and visual sequences |
 | MyWhoosh arrows | Separate from gears; held key released on focus loss; junction behaviour unverified |
 | Mouse | Current pointer or named physical screen coordinates |
 | macOS / Windows ARM | Not qualified |
@@ -22,7 +22,7 @@ Clean-PC installation, physical negative-coordinate/disconnected-monitor scenari
 
 The new foreground service is covered by cancellation, activation-denial, ambiguous-window and key-release tests. Physical MyWhoosh/Edge switching and MyWhoosh lateral/junction behaviour remain unqualified: MyWhoosh reported a server error during preparation. Simulated tests are not ride qualification.
 
-In the native automated fixture, Windows refused foreground activation and the app sent zero input events. Successful switching in an allowed real context remains pending. The isolated 1.1 installer passed migration from the 1.0 configuration format, normal app launch, running-app upgrade and uninstall. All existing bindings were also preserved when upgrading the development installation.
+The 1.2 candidate passed 138 automated tests. Native mouse clicks passed on both attached displays (125% and 100%), with one click and cursor restoration. Native minimize/normal close passed on disposable windows. A live MyWhoosh/media focus check completed one switch, then Windows refused activation; no keys or clicks were sent. Reliable repeated switching remains to be qualified. The isolated 1.2 installer passed migration from the 1.0 configuration format, normal launch, running-app upgrade and uninstall. The development installation retained its configuration and assignments.
 
 The optional keep-awake method uses the controller's firmware-update mechanism. It is restricted to the tested hardware/firmware and explicit consent. Long-term effects have not been qualified. Normal app closure attempts to exit this mode before shutdown.
 
