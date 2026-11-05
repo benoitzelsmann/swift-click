@@ -9,8 +9,7 @@
 2. In **Actions → Windows**, add and name any open application window. **Detect**
    looks for MyWhoosh and media sessions reported by Windows. It fills unconfigured
    defaults only when a single target is found. Otherwise select the window yourself.
-3. Assign the MyWhoosh and Media defaults for direct arrow commands and **Switch
-   windows**. These are shortcuts to saved windows; other saved windows can be
+3. Assign the MyWhoosh and Media defaults for direct arrow commands. Other saved windows can be
    used by routines. If several windows of the same app cannot be distinguished
    after a restart, select the intended one again.
 
@@ -23,7 +22,7 @@
 | Routine: Click position | Activate the selected window, verify the point is inside it and uncovered, then click once |
 
 The pointer is not restored if you move the mouse yourself during the operation.
-Restoring it does not restore keyboard focus. A routine's **Return to previous
+Restoring it does not restore keyboard focus. A routine's **Return to starting
 window** option handles focus separately. Missing/changed displays block saved clicks.
 Clicks do not detect a YouTube ad: the saved point must still correspond to the
 visible **Skip / Ignorer** button. Test the position with the video visible first.
@@ -31,9 +30,16 @@ visible **Skip / Ignorer** button. Test the position with the video visible firs
 ## Build a routine
 
 Choose **New routine**, name it and add actions. Each action becomes a card in a
-top-to-bottom diagram. Choose its saved target, then **Apply step**. Reorder cards
-by dragging or using the arrows. **Save** commits the whole routine; **Cancel**
+top-to-bottom diagram. Choose its saved target, then **Confirm action**. Reorder cards
+by dragging or using the arrows. **Confirm action** returns directly to the action
+choices. Click a numbered card to edit it again. **Save** commits the whole routine; **Cancel**
 leaves the saved version unchanged. A routine supports up to 32 actions.
+
+You can also drag an action from the choices into the sequence. A line shows the
+insertion point; configure the action and confirm to insert it there. Drag existing
+cards to reorder them, or use the bordered Up, Down and Remove controls below.
+
+![Visual sequence with numbered, reorderable actions](images/routine-editor.png)
 
 - **Open** starts the saved application if needed, or displays its existing window.
   Restoring a specific document or browser tab depends on the application.
@@ -41,21 +47,27 @@ leaves the saved version unchanged. A routine supports up to 32 actions.
 - **Minimize / Close window** affect that window. Close is a normal close request;
   unsaved-document confirmations remain in control of the application.
 - **Switch** alternates between two saved windows. From another app, it displays
-  the first target.
+  the first target. A final Switch stays in the new window; automatic return is
+  unavailable because it would immediately undo the switch. Existing switch
+  routines follow this same rule.
 - **Click position** activates its window and checks the saved point before clicking.
 - **Seek backward / forward** activates its window and sends a complete left/right
   key press. The video player needs keyboard focus inside the browser.
 - **Wait** pauses between actions for 0.1–10 seconds.
 
 Example: **Click position · Edge / Ignorer YouTube → Activate · MyWhoosh**.
-Alternatively, a single click step with **Return to previous window** returns to
+Alternatively, a single click step with **Return to starting window** returns to
 whichever app was active before the routine.
+When testing from Swift Click, the starting window is Swift Click itself. With a
+controller button during a ride, it is the window active at that moment.
 
 After saving, use **Test** and **Stop**, then assign **Run routine** under
 **Settings → Buttons**. Routines run once on Simple, Double or Long; they cannot
 be repeated with Continuous hold. A new window action cancels the preceding
 sequence. Disconnecting or closing Swift Click discards pending actions. If you
 switch windows manually, the routine stops instead of pulling focus back.
+
+![Selected routine in the catalogue](images/routines.png)
 
 ## Keep the controller simple
 
@@ -68,6 +80,11 @@ also remains Simple. Disabled gestures retain their assignments.
 Continuous hold allows only volume, video arrows and MyWhoosh arrows. Volume and
 video repeat; MyWhoosh arrows remain down until release. Gears use OpenBikeControl
 and do not depend on the foreground window.
+
+Media also includes **Mute / unmute**, which toggles Windows output mute once.
+Assign it to Simple, Double or Long; it is excluded from Continuous hold. Gesture
+timing details are displayed under **Settings → General**. The old direct Switch
+windows shortcut is no longer offered; add a Switch step to a named routine instead.
 
 ## MyWhoosh service setup
 

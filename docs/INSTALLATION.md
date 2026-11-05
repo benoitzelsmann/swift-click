@@ -28,6 +28,18 @@ its running window. Start session establishes Swift Click's connections separate
 
 ## Updates and removal
 
+In 1.3, media controls are grouped together and include Mute / unmute. Gesture
+timing details are under Settings → General. Window switching is configured as
+a routine step; the old direct Switch windows choice is no longer offered.
+Your existing named routines and targets are retained; no default routines are
+created. Example screenshots show illustrative assignments only.
+
+Before updating, keep your previous installer and back up the full
+`%LOCALAPPDATA%\SwiftClick` folder with Swift Click closed. Older versions cannot
+read an assignment using the new mute action. To downgrade, close Swift Click,
+back up the current data, reinstall the earlier installer and restore your
+configuration backup from that version before opening it.
+
 Version 1.2 adds a window catalogue and visual routine sequences. The upgrade from
 1.1 saves `controller.pre-v4.json` and converts existing routines without changing
 their button assignments. Windows and mouse positions have stable references;

@@ -2,7 +2,7 @@
 
 Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
 
-[Downloads and release notes](https://github.com/benoitzelsmann/swift-click/releases) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Compatibility](docs/COMPATIBILITY.md) · [Installation](docs/INSTALLATION.md) · [Privacy](docs/PRIVACY.md)
+[Download 1.3.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.3.0/SwiftClick-1.3.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.3.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 <img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
 
@@ -18,7 +18,7 @@ Many smart trainers are sold with Zwift Cog and Click hardware, including [Zwift
 
 BikeControl is an established alternative and a useful reference for the OpenBikeControl protocol. Swift Click focuses on this particular right-controller-to-MyWhoosh setup and local Windows controls.
 
-According to [BikeControl's official pricing page](https://bikecontrol.app/pricing/), checked on **4 November 2026**:
+According to [BikeControl's official pricing page](https://bikecontrol.app/pricing/), checked on **5 November 2026**:
 
 - **Base** is a one-time purchase of about **US$4.99 per platform**, with unlimited button actions, including shifting handled by the training app.
 - **Pro** is about **US$2.50/month**, or **US$2.25/month billed annually**, and adds BikeControl's own virtual shifting and other features. Store prices vary by region.
@@ -30,7 +30,7 @@ Base already removes the daily button-action limit. Pro is not required simply t
 
 - Change gears in MyWhoosh using the OpenBikeControl network protocol.
 - Enable Simple, Double, Long and Continuous hold independently on each button.
-- Control Windows volume, play/pause and previous/next tracks.
+- Control Windows volume, mute/unmute, play/pause and previous/next tracks.
 - Target a selected video window for left/right navigation, or MyWhoosh for its own arrow keys.
 - Save named windows, with automatic MyWhoosh/media detection.
 - Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
@@ -42,13 +42,54 @@ No browser extension, Swift Click account or telemetry is required. Video contro
 
 ![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
 
-![Flag buttons for English and French](docs/images/languages.png)
+Screenshots show the actual 1.3.0 interface with illustrative configurations, not preconfigured assignments. New installations start with no actions assigned.
+
+## Visual routines
+
+Prepare **Mouse positions** and **Windows** under Actions, then open **Routines**.
+Drag an action into the diagram, select its saved targets and choose **Confirm action**.
+Reorder the numbered cards by dragging or with the arrow buttons. Save the routine
+and assign **Run routine** to a Simple, Double or Long press under Settings → Buttons.
+
+![Visual routine editor with a video-window activation, a saved click and automatic return enabled](docs/images/routine-editor.png)
+
+For example, **Skip ad and return** displays your video window, clicks the named
+Skip ad point and returns to the window that was active before the routine.
+The point must still match a visible, clickable button. This does not detect ads
+automatically. A final **Switch** stays in the new window instead of returning.
+
+The catalogue clearly marks the selected routine. Selecting one does not run it;
+use **Test**, **Stop**, or the controller gesture you assigned.
+
+![Routine catalogue with one selected example routine](docs/images/routines.png)
+
+[Read the full windows, clicks and routines guide](docs/ACTIONS.md).
+
+## Media and saved targets
+
+The **Media** category groups volume, mute/unmute, playback, tracks and video seeking.
+MyWhoosh and Windows icons identify where commands go. Continuous hold supports
+repeated volume/video commands; mute is a single toggle per gesture.
+
+![Unified media action picker with mute selected](docs/images/media-actions.png)
+
+![Named application windows with their default roles](docs/images/windows.png)
+
+![Named mouse position and its display coordinates](docs/images/mouse-positions.png)
+
+## Language and gesture settings
+
+Settings is at the right of the navigation bar. Choose English or French under
+**General**, where gesture timing rules are also listed. **Manage presses** on the
+Buttons page enables or disables each gesture without discarding its assignment.
+
+![English and French language selection and gesture timing settings](docs/images/languages.png)
 
 ## Download and install
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.2.0 package is an unsigned draft release candidate. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.3.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 

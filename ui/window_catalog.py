@@ -42,9 +42,6 @@ class WindowsPage(QWidget):
         catalogue = QWidget()
         content = QVBoxLayout(catalogue)
         content.setContentsMargins(0,0,0,0)
-        self.defaults = label("","muted")
-        self.defaults.setProperty("i18nUserText",True)
-        content.addWidget(self.defaults)
         self.saved = SelectionList()
         self.saved.setIconSize(QSize(34,34))
         self.saved.setAccessibleName("Saved windows")
@@ -123,10 +120,12 @@ class WindowsPage(QWidget):
         for ident,target in cfg["windows"].items():
             try:
                 self.owner.controller.windows.target(ident,cfg,live)
-                state = tr("Open")
+                state = tr("Available")
             except RuntimeError:
                 state = tr("Not open")
-            self.saved.addItem(target["name"]+"\n"+state+" · "+target["title"])
+            roles = [tr(title) for role,title in (("mywhoosh","MyWhoosh"),("video","Media")) if role_ref(cfg,role) == ident]
+            detail = " · ".join([*roles,state])
+            self.saved.addItem(target["name"]+"\n"+detail)
             item = self.saved.item(self.saved.count()-1)
             item.setIcon(application_icon(target["path"]))
             item.setData(Qt.ItemDataRole.UserRole,ident)
@@ -135,11 +134,6 @@ class WindowsPage(QWidget):
         self.saved.blockSignals(False)
         self.empty.setVisible(not self.saved.count())
         self.saved.setVisible(bool(self.saved.count()))
-        names = []
-        for role,title in (("mywhoosh","MyWhoosh"),("video","Media")):
-            target = cfg["windows"].get(role_ref(cfg,role))
-            names.append(tr(title)+" · "+(target["name"] if target else tr("Not defined")))
-        self.defaults.setText("     /     ".join(names))
         self.selection(self.saved.currentItem())
         if not self.detected_once and not self.detecting:
             try:
@@ -152,6 +146,7 @@ class WindowsPage(QWidget):
         self.ident = item.data(Qt.ItemDataRole.UserRole) if item else None
         for button in (self.edit_button,self.open_button,self.delete_button):
             button.setEnabled(bool(self.ident) and not self.opening)
+            button.setVisible(bool(self.owner.controller.config["windows"]))
 
     def new(self):
         self.editing = None
@@ -267,8 +262,7 @@ class WindowsPage(QWidget):
                 self.owner.controller.save(cfg)
                 for ident,win in selected:
                     self.owner.controller.windows.select(ident,win)
-            self.status.setText(tr("Detected: {game} MyWhoosh, {media} media windows").format(game=len(detected["mywhoosh"]),media=len(detected["media"]))+
-                                (" · "+tr(detected["warning"]) if detected["warning"] else ""))
+            self.status.setText(tr(detected["warning"]) if detected["warning"] else "")
             self.reload()
         except (RuntimeError,OSError,ValueError) as exc:
             self.result.setText(str(exc))

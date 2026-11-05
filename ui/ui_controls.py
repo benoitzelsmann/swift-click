@@ -2,7 +2,7 @@
 
 from PySide6.QtCore import Qt, QSize, QRectF, QVariantAnimation, QEasingCurve
 from i18n import apply_widgets
-from PySide6.QtGui import QColor, QPainter, QCursor
+from PySide6.QtGui import QColor, QPainter, QCursor, QPen
 from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
     QStyledItemDelegate, QStyleOptionViewItem, QListWidget, QAbstractItemView,
@@ -21,6 +21,11 @@ class KeyboardButton(QPushButton):
         option.state &= ~QStyle.StateFlag.State_HasFocus
         painter = QStylePainter(self)
         painter.drawControl(QStyle.ControlElement.CE_PushButton, option)
+        if self.hasFocus() and self.window().testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.setPen(QPen(QColor("#287e68"),2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(self.rect().adjusted(2,2,-3,-3),6,6)
 
 
 class SelectionDelegate(QStyledItemDelegate):
@@ -35,6 +40,8 @@ class SelectionList(QListWidget):
         super().__init__(parent)
         self.setItemDelegate(SelectionDelegate(self))
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setTextElideMode(Qt.TextElideMode.ElideRight)
 
 
 def message_box(parent, title, text, *, question=False, warning=False, accept="Confirm"):

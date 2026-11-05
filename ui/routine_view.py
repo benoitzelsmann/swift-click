@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QStack
 from desktop_ui import make_page,card,label,push
 from ui_controls import SelectionList,ToggleSwitch,confirm_dialog
 from ui_icons import icon,badge,application_icon
-from flow_widgets import FlowList,step_text,SYMBOLS
+from flow_widgets import FlowList,ActionChoice,step_text,SYMBOLS
 from settings import STEP_ACTIONS,routine_steps,step_problem
 from i18n import tr,language
 
@@ -20,6 +20,7 @@ class RoutinesPage(QWidget):
         self.rendered_language = None
         self.editing_row = None
         self.pending_step = None
+        self.insert_row = None
         self.testing = False
         self.test_stop = None
         outer = QVBoxLayout(self)
@@ -30,7 +31,6 @@ class RoutinesPage(QWidget):
         content.setContentsMargins(16,12,16,12)
         content.setSpacing(8)
         body.addWidget(surface,1)
-        content.addWidget(label("Build a sequence from your saved windows and mouse positions. Actions run from top to bottom.","muted"))
         self.stack = QStackedWidget()
         content.addWidget(self.stack,1)
         catalogue = QWidget()
@@ -39,7 +39,7 @@ class RoutinesPage(QWidget):
         self.list = SelectionList()
         self.list.setIconSize(QSize(34,34))
         self.list.setAccessibleName("Saved routines")
-        self.list.setStyleSheet("QListWidget {background:white;border:0;padding:0;} QListWidget::item {padding:14px;margin-bottom:6px;background:#f6f8f8;}")
+        self.list.setStyleSheet("QListWidget {background:white;border:0;padding:0;} QListWidget::item {padding:14px;margin-bottom:6px;background:#f6f8f8;border:2px solid transparent;} QListWidget::item:selected {background:#e4f3ec;border:2px solid #287e68;color:#164e3d;}")
         self.list.currentItemChanged.connect(self.selection)
         box.addWidget(self.list,1)
         self.empty = QWidget()
@@ -68,20 +68,22 @@ class RoutinesPage(QWidget):
         self.name.setMaxLength(60)
         self.name.setAccessibleName("Routine name")
         self.name.setPlaceholderText("Routine name")
+        self.name.setMinimumHeight(46)
+        self.name.setStyleSheet("QLineEdit {font-size:18px;font-weight:600;padding:8px 12px;border:1px solid #cdd7df;border-radius:8px;background:#f8fafb;}")
         self.name.textChanged.connect(self.update_controls)
         edit.addWidget(self.name)
         columns = QHBoxLayout()
         columns.setSpacing(14)
         diagram = QVBoxLayout()
         head = QHBoxLayout()
-        head.addWidget(label("Start","muted"),1)
-        self.add_button = push("Add action",self.choose_action)
-        self.add_button.setObjectName("quiet")
-        head.addWidget(self.add_button)
+        head.addWidget(label("Sequence",size=16),1)
         diagram.addLayout(head)
         self.flow = FlowList(lambda:owner.controller.config)
         self.flow.currentRowChanged.connect(self.show_step)
+        self.flow.itemClicked.connect(lambda item:self.show_step(self.flow.row(item)))
+        self.flow.itemActivated.connect(lambda item:self.show_step(self.flow.row(item)))
         self.flow.model().rowsMoved.connect(self.reordered)
+        self.flow.actionDropped.connect(self.add_action)
         diagram.addWidget(self.flow,1)
         order = QHBoxLayout()
         self.up_button = push("↑",lambda:self.move(-1))
@@ -90,11 +92,11 @@ class RoutinesPage(QWidget):
         self.down_button.setAccessibleName("Move step down")
         self.remove_step_button = push("Remove",self.remove_step)
         for widget in (self.up_button,self.down_button,self.remove_step_button):
-            widget.setObjectName("quiet")
+            widget.setMinimumHeight(36)
             order.addWidget(widget)
+        self.up_button.setMinimumWidth(46)
+        self.down_button.setMinimumWidth(46)
         order.addStretch()
-        self.end = label("End","muted")
-        order.addWidget(self.end)
         diagram.addLayout(order)
         columns.addLayout(diagram,3)
         self.panels = QStackedWidget()
@@ -104,13 +106,16 @@ class RoutinesPage(QWidget):
         chooser = QWidget()
         choices = QVBoxLayout(chooser)
         choices.setContentsMargins(0,0,0,0)
-        choices.addWidget(label("Add action",size=16))
+        choices.addWidget(label("Actions",size=16))
         grid = QGridLayout()
         grid.setSpacing(7)
         short = {"open":"Open","activate":"Activate","minimize":"Minimize","close":"Close",
                  "switch":"Switch","click":"Click","seek_back":"Back","seek_forward":"Forward","wait":"Wait"}
+        self.action_buttons = []
         for index,action in enumerate(STEP_ACTIONS):
-            button = push(short[action],lambda _=False,a=action:self.add_action(a))
+            button = ActionChoice(short[action],action)
+            button.clicked.connect(lambda _=False,a=action:self.add_action(a))
+            self.action_buttons.append(button)
             button.setObjectName("choice")
             button.setIcon(icon(SYMBOLS[action]))
             button.setAccessibleName(STEP_ACTIONS[action])
@@ -138,12 +143,12 @@ class RoutinesPage(QWidget):
         self.seconds.setAccessibleName("Wait in seconds")
         self.seconds.valueChanged.connect(self.set_seconds)
         prop.addWidget(self.seconds)
-        self.step_note = label("","muted")
-        self.step_note.setStyleSheet("font-size:12px")
+        self.step_note = label("")
+        self.step_note.setStyleSheet("color:#364657;font-size:13px")
         prop.addWidget(self.step_note)
         prop.addStretch()
-        prop.addWidget(push("Back to actions",self.choose_action))
-        self.apply_step_button = push("Apply step",self.apply_step,True)
+        prop.addWidget(push("Cancel action",self.choose_action))
+        self.apply_step_button = push("Confirm action",self.apply_step,True)
         prop.addWidget(self.apply_step_button)
         self.panels.addWidget(props)
         picks = QWidget()
@@ -160,7 +165,7 @@ class RoutinesPage(QWidget):
         self.panels.addWidget(picks)
         edit.addLayout(columns,1)
         footer = QHBoxLayout()
-        self.return_previous = ToggleSwitch("Return to previous window")
+        self.return_previous = ToggleSwitch("Return to starting window")
         self.return_previous.toggled.connect(self.update_controls)
         footer.addWidget(self.return_previous)
         footer.addStretch()
@@ -170,6 +175,7 @@ class RoutinesPage(QWidget):
         edit.addLayout(footer)
         self.stack.addWidget(editor)
         self.result = label("","muted")
+        self.result.hide()
         content.addWidget(self.result)
         self.new()
         self.stack.setCurrentIndex(0)
@@ -216,6 +222,8 @@ class RoutinesPage(QWidget):
         if self.testing:
             return
         self.ident = None
+        if hasattr(self,"result"):
+            self.result.hide()
         self.name.clear()
         self.flow.set_steps([])
         self.return_previous.setChecked(False)
@@ -227,6 +235,7 @@ class RoutinesPage(QWidget):
         if not self.ident:
             return
         routine = self.config()["routines"][self.ident]
+        self.result.hide()
         self.name.setText(routine["name"])
         self.flow.set_steps(routine_steps(routine,self.config()))
         self.return_previous.setChecked(routine["return"])
@@ -236,16 +245,17 @@ class RoutinesPage(QWidget):
 
     def choose_action(self):
         self.pending_step = None
+        self.insert_row = None
         self.editing_row = None
-        self.flow.setCurrentRow(-1)
         self.panels.setCurrentIndex(0)
         self.update_controls()
 
-    def add_action(self, action):
+    def add_action(self, action, row=None):
         if self.flow.count() >= 32:
             return
         self.flow.setCurrentRow(-1)
         self.editing_row = None
+        self.insert_row = row
         self.pending_step = {"action":action,"seconds":.5} if action == "wait" else {"action":action,"window_id":None}
         if action == "switch": self.pending_step["other_window_id"] = None
         if action == "click": self.pending_step["position_id"] = None
@@ -280,12 +290,10 @@ class RoutinesPage(QWidget):
             self.seconds.setValue(step["seconds"])
             self.seconds.blockSignals(False)
         notes = {"close":"Normal close: the application's confirmation dialogs remain active.",
-                 "switch":"Switches to the other selected window. From any other app, shows the first window.",
-                 "open":"Opens the application. Restoring a document or tab depends on that app.",
-                 "click":"The point must be inside the chosen window and not covered.",
                  "seek_back":"Keep keyboard focus on the video player inside the selected browser window.",
                  "seek_forward":"Keep keyboard focus on the video player inside the selected browser window."}
         self.step_note.setText(notes.get(action,""))
+        self.step_note.setVisible(bool(self.step_note.text()))
         self.apply_step_button.setEnabled(not step_problem(step,self.config()))
         self.update_controls()
 
@@ -319,15 +327,15 @@ class RoutinesPage(QWidget):
             return
         row = self.editing_row
         if row is None:
-            self.flow.append(self.pending_step)
-            row = self.flow.count()-1
+            row = self.flow.count() if self.insert_row is None else min(self.insert_row,self.flow.count())
+            self.flow.insert_step(row,self.pending_step)
         else:
             self.flow.set_step(row,self.pending_step)
-        self.pending_step = None
+        self.flow.blockSignals(True)
         self.flow.setCurrentRow(row)
-        self.show_step(row)
+        self.flow.blockSignals(False)
         self.flow.scrollToItem(self.flow.item(row))
-        self.update_controls()
+        self.choose_action()
 
     def move(self, delta):
         row = self.flow.currentRow()
@@ -359,15 +367,24 @@ class RoutinesPage(QWidget):
         selected = self.ident in self.config()["routines"]
         self.edit_button.setEnabled(selected and not self.testing)
         self.delete.setEnabled(selected and not self.testing)
+        for button in (self.edit_button,self.test,self.delete):
+            button.setVisible(bool(self.config()["routines"]))
         routine = self.config()["routines"].get(self.ident)
         self.test.setEnabled(selected and not self.testing and not any(step_problem(s,self.config()) for s in routine_steps(routine,self.config())) if routine else False)
         self.stop_button.setVisible(self.testing)
-        self.add_button.setEnabled(len(steps) < 32)
+        self.test.setText("Running…" if self.testing else "Test")
+        for button in self.action_buttons:
+            button.setEnabled(len(steps) < 32)
         row = self.flow.currentRow()
         self.up_button.setEnabled(row > 0)
         self.down_button.setEnabled(0 <= row < len(steps)-1)
         self.remove_step_button.setEnabled(row >= 0)
-        self.end.setText(tr("Return") if self.return_previous.isChecked() else tr("End"))
+        switches = bool(steps) and steps[-1]["action"] == "switch"
+        if switches and self.return_previous.isChecked():
+            self.return_previous.blockSignals(True)
+            self.return_previous.setChecked(False)
+            self.return_previous.blockSignals(False)
+        self.return_previous.setVisible(not switches)
 
     def draft(self):
         return {"name":self.name.text().strip(),"steps":self.flow.steps(),"return":self.return_previous.isChecked()}
@@ -387,6 +404,7 @@ class RoutinesPage(QWidget):
             self.result.setText("Saved")
         except (ValueError,OSError) as exc:
             self.result.setText(str(exc))
+            self.result.show()
 
     def finish(self):
         self.pending_step = None
@@ -397,6 +415,7 @@ class RoutinesPage(QWidget):
         if self.testing or not self.ident:
             return
         self.testing = True
+        self.result.show()
         self.test_stop = threading.Event()
         self.update_controls()
         try:

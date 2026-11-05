@@ -80,6 +80,16 @@ def icon(name, color="#287e68"):
     elif name == "detect":
         painter.drawEllipse(QRectF(3,3,13,13))
         painter.drawLine(15,15,21,21)
+    elif name == "system":
+        for x,y in ((3,3),(13,3),(3,13),(13,13)):
+            painter.drawRect(QRectF(x,y,8,8))
+    elif name == "settings":
+        import math
+        painter.drawEllipse(QRectF(5,5,14,14))
+        painter.drawEllipse(QRectF(9,9,6,6))
+        for angle in range(0,360,45):
+            a=math.radians(angle)
+            painter.drawLine(QPointF(12+7*math.cos(a),12+7*math.sin(a)),QPointF(12+10*math.cos(a),12+10*math.sin(a)))
     else:
         painter.drawEllipse(QRectF(4,4,16,16))
         painter.drawLine(10,8,16,12)
@@ -96,6 +106,17 @@ def application_icon(path):
         result = QFileIconProvider().icon(QFileInfo(path)) if path else QIcon()
         _CACHE[key] = result if not result.isNull() else icon("window")
     return _CACHE[key]
+
+
+def action_icon(action):
+    if action in ("shift_up","shift_down","whoosh_left","whoosh_right"):
+        from pathlib import Path
+        return QIcon(str(Path(__file__).with_name("assets")/"mywhoosh.png"))
+    if action == "none":
+        return QIcon()
+    if action == "routine":
+        return icon("routine")
+    return icon("system","#3278bb")
 
 
 class IconBadge(QLabel):

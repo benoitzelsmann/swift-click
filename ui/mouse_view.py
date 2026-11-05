@@ -33,7 +33,6 @@ class MousePage(QWidget):
         page, body = make_page("Mouse positions",action=self.add)
         body.setSpacing(16)
         layout.addWidget(page)
-        body.addWidget(label("Save a screen point without clicking. Use it directly on a button, or in a routine that activates its window first.","muted"))
         self.columns_surface = QWidget()
         columns = QHBoxLayout(self.columns_surface)
         columns.setContentsMargins(0,0,0,0)
@@ -42,6 +41,7 @@ class MousePage(QWidget):
         body.addWidget(self.columns_surface)
         body.addStretch()
         sidebar, sidebar_box = card()
+        self.sidebar = sidebar
         sidebar.setMinimumWidth(180)
         sidebar.setMaximumWidth(240)
         sidebar_box.setContentsMargins(12,12,12,12)
@@ -69,7 +69,7 @@ class MousePage(QWidget):
         columns.addWidget(self.detail_surface,2)
         self.detail_pages = QStackedWidget()
         box.addWidget(self.detail_pages,1)
-        self.no_selection = label("Add a position", "muted")
+        self.no_selection = label("No saved positions", "muted")
         self.no_selection.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.detail_pages.addWidget(self.no_selection)
         self.summary = QWidget()
@@ -80,8 +80,8 @@ class MousePage(QWidget):
         self.summary_title.setProperty("i18nUserText", True)
         summary_box.addWidget(self.summary_title)
         self.summary_details = label("","muted")
+        self.summary_details.setProperty("i18nUserText",True)
         from ui_icons import badge
-        summary_box.insertWidget(0,badge("position"))
         summary_box.addWidget(self.summary_details)
         self.rename = push("Rename",self.begin_rename)
         summary_box.addWidget(self.rename,alignment=Qt.AlignmentFlag.AlignLeft)
@@ -102,6 +102,7 @@ class MousePage(QWidget):
         self.name.setAccessibleName("Position name")
         editor.addWidget(self.name)
         self.details = label("","muted")
+        self.details.setProperty("i18nUserText",True)
         editor.addWidget(self.details)
         controls = QHBoxLayout()
         controls.setSpacing(8)
@@ -138,6 +139,20 @@ class MousePage(QWidget):
         item = self.list.currentItem()
         return item.data(Qt.ItemDataRole.UserRole) if item else None
 
+    def location_text(self, point):
+        screen = point["screen"]["device"].split("DISPLAY")[-1]
+        display = tr("Display {number}").format(number=screen)
+        state = "" if mouse_controls.is_valid(point) else " · " + tr("Position needs updating")
+        return f"{display} · {point['x']}, {point['y']} px{state}"
+
+    def refresh_language(self):
+        point = self.points().get(self.current_id())
+        if point:
+            self.summary_details.setText(self.location_text(point))
+        editing = self.draft or self.points().get(self.editing) or point
+        if editing:
+            self.details.setText(self.location_text(editing))
+
     def reload(self, selected=None):
         selected = selected or self.current_id()
         self.list.blockSignals(True)
@@ -145,7 +160,6 @@ class MousePage(QWidget):
         for ident,point in self.points().items():
             self.list.addItem(point["name"])
             item = self.list.item(self.list.count()-1)
-            item.setIcon(icon("position"))
             item.setData(Qt.ItemDataRole.UserRole,ident)
             if ident == selected:
                 self.list.setCurrentItem(item)
@@ -153,6 +167,7 @@ class MousePage(QWidget):
         if self.list.count() and self.list.currentRow() < 0:
             self.list.setCurrentRow(0)
         self.position_pages.setCurrentWidget(self.list if self.list.count() else self.empty)
+        self.sidebar.setVisible(bool(self.list.count()))
         self.selection(force=True)
 
     def selection(self, *_, force=False):
@@ -183,10 +198,7 @@ class MousePage(QWidget):
         point = self.points()[ident]
         valid = mouse_controls.is_valid(point)
         self.test.setEnabled(valid and not self.capturing and not self.testing)
-        screen = point["screen"]
-        state = "" if valid else " · Position needs updating"
-        screen_name = "Display " + screen["device"].split("DISPLAY")[-1]
-        self.details.setText(f"{screen_name} · {point['x']}, {point['y']} px{state}")
+        self.details.setText(self.location_text(point))
         self.summary_title.setText(point["name"])
         self.summary_details.setText(self.details.text())
         self.detail_pages.setCurrentWidget(self.summary)
@@ -215,7 +227,7 @@ class MousePage(QWidget):
         busy = self.capturing or self.testing
         self.save_name.setVisible(self.mode == "rename" or self.draft is not None)
         self.capture.setVisible(self.mode in ("new", "capture"))
-        self.capture.setText("Capture again" if self.draft is not None else "Capture position")
+        self.capture.setText("Capture again" if self.draft is not None else "Capture in 3 seconds")
         capture_style = "" if self.draft is not None else "primary"
         if self.capture.objectName() != capture_style:
             self.capture.setObjectName(capture_style)
@@ -307,8 +319,7 @@ class MousePage(QWidget):
         try:
             await self.countdown("Capturing position")
             self.draft = await asyncio.to_thread(mouse_controls.capture,name)
-            screen = self.draft["screen"]["device"].split("DISPLAY")[-1]
-            self.details.setText(f"Display {screen} · {self.draft['x']}, {self.draft['y']} px")
+            self.details.setText(self.location_text(self.draft))
             self.details.show()
             self.note.setText("Position captured. Save to confirm.")
         except (OSError,RuntimeError,ValueError) as error:

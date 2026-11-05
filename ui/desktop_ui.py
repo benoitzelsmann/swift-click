@@ -26,14 +26,13 @@ from PySide6.QtWidgets import (
 from settings import ACTIONS, ASSIGNABLE, REPEATABLE, GESTURES, GESTURE_NAMES, action_id
 from ui_controls import KeyboardButton, ToggleSwitch, SelectionList
 from i18n import tr, language
+from ui_icons import action_icon,icon
 
 ACTION_GROUPS = {
     "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right"),
-    "Volume": ("volume_down", "volume_up"),
-    "Playback": ("media_previous", "media_play_pause", "media_next"),
-    "Video": ("seek_back", "seek_forward"),
+    "Media": ("volume_down", "volume_up", "volume_mute", "media_previous", "media_play_pause", "media_next", "seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
-    "Windows & routines": ("switch_windows", "routine"),
+    "Routines": ("routine",),
 }
 
 COLORS = {
@@ -47,7 +46,7 @@ STYLE = """
 QWidget { color:#18202b; font-family:'Segoe UI'; font-size:14px; }
 QMainWindow, QWidget#shell, QWidget#page { background:#f4f5f7; }
 QFrame#header { background:white; border-bottom:1px solid #e5e7ed; }
-QPushButton#assignment { background:#f5f6f8; border:1px solid transparent; border-radius:5px; padding:4px 7px; font-weight:500; }
+QPushButton#assignment { background:#f5f6f8; border:1px solid #d5dce4; border-radius:6px; padding:4px 7px; font-weight:500; }
 QPushButton#assignment:hover { border-color:#86b6a5; color:#14674e; }
 QPushButton#choice { background:#f5f6f8; border:1px solid transparent; border-radius:6px; padding:8px 10px; }
 QPushButton#choice:checked { background:#dff2e9; border-color:#78ae96; color:#14523e; }
@@ -83,9 +82,9 @@ QScrollBar::handle:vertical { background:#b8c3ca; border-radius:4px; min-height:
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height:0; }
 QPushButton:checked { background:#e4f3ec; color:#14674e; }
 QPushButton#quiet { border:1px solid transparent; background:transparent; color:#626d7c; padding:3px 5px; }
-QComboBox, QSpinBox, QLineEdit { background:#f6f7fa; border:1px solid #e8ebf0; border-radius:5px; padding:4px 8px; min-height:19px; }
-QComboBox:hover, QSpinBox:hover { border-color:#b6bfd0; }
-QComboBox:focus, QSpinBox:focus, QLineEdit:focus { border-color:#b6bfd0; }
+QComboBox, QSpinBox, QDoubleSpinBox, QLineEdit { background:#f6f7fa; border:1px solid #dce2e9; border-radius:7px; padding:6px 10px; min-height:24px; }
+QComboBox:hover, QSpinBox:hover, QDoubleSpinBox:hover { border-color:#b6bfd0; }
+QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QLineEdit:focus { border-color:#287e68; }
 QComboBox::drop-down { border:0; width:18px; }
 QComboBox QAbstractItemView { background:white; selection-background-color:#e9edff; color:#18202b; border:1px solid #e1e5eb; }
 QTextEdit { background:white; border:1px solid #e1e5eb; border-radius:6px; padding:8px; color:#626d7c; font-size:12px; }
@@ -149,6 +148,10 @@ class AssignmentButton(KeyboardButton):
         ident = action_id(action)
         self.setProperty("i18nUserTooltip", ident == "mouse_position")
         self.full_text = tr(ACTIONS[ident][1])
+        if ident in ("whoosh_left","whoosh_right"):
+            self.full_text = tr("Left arrow" if ident == "whoosh_left" else "Right arrow")
+        self.setIcon(action_icon(ident))
+        self.setIconSize(QSize(16,16))
         if ident == "mouse_position":
             points = self.window().controller.config["positions"]
             point = points.get(action["position_id"])
@@ -161,7 +164,7 @@ class AssignmentButton(KeyboardButton):
         self.render_text()
 
     def render_text(self):
-        self.setText(self.fontMetrics().elidedText(self.full_text, Qt.TextElideMode.ElideRight, max(0,self.width()-14)))
+        self.setText(self.fontMetrics().elidedText(self.full_text, Qt.TextElideMode.ElideRight, max(0,self.width()-(36 if not self.icon().isNull() else 14))))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -216,11 +219,9 @@ class ControllerEditor(QWidget):
 
         self.restore = KeyboardButton("Reset")
         self.restore.setAccessibleName("Reset button assignments")
-        self.restore.setObjectName("quiet")
         grid.addWidget(self.restore, 0, 4, 1, 2,
                        Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
         manage = push("Manage presses",self.manage_presses)
-        manage.setObjectName("quiet")
         grid.addWidget(manage,0,0,1,2,Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         choices, choice_box = card()
@@ -234,6 +235,7 @@ class ControllerEditor(QWidget):
         self.current_assignment.setProperty("i18nUserText",True)
         choice_box.addWidget(self.current_assignment)
         self.timing = label("","muted")
+        self.timing.hide()
         self.timing.setStyleSheet("font-size:12px")
         choice_box.addWidget(self.timing)
         self.action_note = label("","muted")
@@ -253,7 +255,8 @@ class ControllerEditor(QWidget):
             button = push(group,lambda _=False,g=group:self.show_group(g))
             button.setObjectName("category")
             button.setMinimumHeight(62)
-            category_grid.addWidget(button,index//3,index%3)
+            button.setIcon(action_icon("shift_up" if group == "MyWhoosh" else "routine" if group == "Routines" else "mouse_click"))
+            category_grid.addWidget(button,index//2,index%2)
             self.category_buttons[group] = button
         self.pick_pages.addWidget(categories)
         action_page = QWidget()
@@ -275,21 +278,31 @@ class ControllerEditor(QWidget):
             option = KeyboardButton(ACTIONS[action][1])
             option.setObjectName("choice")
             option.setProperty("action", action)
+            option.setIcon(action_icon(action))
+            option.setIconSize(QSize(18,18))
+            if action in ("whoosh_left","whoosh_right"):
+                option.setText("Left arrow" if action == "whoosh_left" else "Right arrow")
             option.setCheckable(True)
             option.setMinimumHeight(34)
             self.options.addButton(option)
+            if action == "switch_windows":
+                option.hide()
+                continue
             if action == "none":
                 option.setMinimumHeight(34)
-                category_grid.addWidget(option,2,0,1,3)
+                category_grid.addWidget(option,2,0,1,2)
             else:
                 cell = QWidget(action_page)
                 cell_box = QVBoxLayout(cell)
                 cell_box.setContentsMargins(0,0,0,0)
-                cell_box.setSpacing(6)
+                cell_box.setSpacing(2)
                 cell_box.addWidget(option)
                 used = label("","muted")
                 used.setProperty("i18nUserText",True)
                 used.setStyleSheet("font-size:12px")
+                used.setFixedHeight(18)
+                used.setWordWrap(False)
+                used.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Fixed)
                 cell_box.addWidget(used)
                 self.usage_labels[action] = used
                 self.option_cells[action] = cell
@@ -341,8 +354,6 @@ class ControllerEditor(QWidget):
         presses_box.setContentsMargins(18,12,18,12)
         presses_box.setSpacing(6)
         presses_box.addWidget(label("Manage presses",size=18))
-        presses_box.addWidget(label("Simple: on release. Double: two brief presses within 300 ms. Long: release after 650 ms. Continuous hold: starts at 1.5 s.","muted"))
-        presses_box.addWidget(label("Double delays Simple by up to 300 ms. Disabled presses keep their assignments.","muted"))
         flags_grid = QGridLayout()
         flags_grid.setVerticalSpacing(2)
         self.enable_switches = {}
@@ -413,7 +424,7 @@ class ControllerEditor(QWidget):
 
     def show_group(self, group):
         self.active_group = group
-        self.choices_frame.setMinimumWidth(540)
+        self.choices_frame.setMinimumWidth(620 if group == "Media" else 540)
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
         self.group_title.setText(tr(group))
@@ -428,7 +439,8 @@ class ControllerEditor(QWidget):
         allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
         for index, action in enumerate(allowed):
             cell = self.option_cells[action]
-            self.action_grid.addWidget(cell,index//2,index%2)
+            columns = 3 if group == "Media" else 2
+            self.action_grid.addWidget(cell,index//columns,index%columns)
             cell.show()
         self.pick_pages.setCurrentIndex(1)
         self.back_to_actions.show()
@@ -481,11 +493,11 @@ class ControllerEditor(QWidget):
         if self.active_group:
             self.group_title.setText(tr(self.active_group))
         for action, used in self.usage_labels.items():
-            used.setText(self.usage_text(action))
+            used.setText(self.usage_text(action) if self.uses(action) else "")
+            used.setVisible(True)
         for group, button in self.category_buttons.items():
             allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
-            assigned = sum(bool(self.uses(a)) for a in allowed)
-            button.setText(tr(group) + "\n" + tr("{count} actions, {used} assigned").format(count=len(allowed),used=assigned))
+            button.setText(tr(group))
         self.update_pending()
 
     def update_pending(self):
@@ -680,14 +692,17 @@ def build_ui(w):
     nav.addWidget(w.version_label)
     nav.addStretch()
     w.pages = QStackedWidget()
-    w.nav = []
+    w.nav = [None]*4
     w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS, 3:PAGE_MOUSE}
-    for index, name in enumerate(("Dashboard", "Connections", "Settings", "Actions")):
+    for index, name in ((0,"Dashboard"),(1,"Connections"),(3,"Actions"),(2,"Settings")):
         item = push(name, lambda _=False, i=index: show_section(w, i))
         item.setObjectName("nav")
         item.setCheckable(True)
         nav.addWidget(item)
-        w.nav.append(item)
+        if index == 2:
+            item.setIcon(icon("settings"))
+            item.setIconSize(QSize(18,18))
+        w.nav[index] = item
     outer.addWidget(header)
     w.subnav_frame = QFrame()
     w.subnav_frame.setObjectName("subnav")
@@ -717,7 +732,7 @@ def build_ui(w):
     for index, name in enumerate(("MyWhoosh", "Controller")):
         row = QHBoxLayout()
         row.setContentsMargins(0, 20, 0, 20)
-        from ui_icons import badge, icon
+        from ui_icons import badge
         picture = badge("window" if index == 0 else "controller")
         if index == 0:
             from PySide6.QtGui import QIcon

@@ -403,5 +403,18 @@
   "Return runs after the last step if you have not switched windows manually.": "Le retour s’effectue après la dernière étape, sauf si vous avez changé de fenêtre manuellement.",
   "Application cannot be opened. Select its window again.": "Impossible d’ouvrir l’application. Sélectionnez à nouveau sa fenêtre.",
   "Step {current} of {total}": "Étape {current} sur {total}",
-  "Select the {target} window in Windows settings": "Sélectionnez la fenêtre {target} dans Actions → Fenêtres"
+  "Select the {target} window in Windows settings": "Sélectionnez la fenêtre {target} dans Actions → Fenêtres",
+  "Sequence": "Séquence",
+  "Confirm action": "Valider l’action",
+  "Cancel action": "Annuler l’action",
+  "Return to starting window": "Revenir à la fenêtre de départ",
+  "Stay in the last window": "Rester dans la dernière fenêtre",
+  "Available": "Disponible",
+  "Describe the problem and include your app version. Remove personal details from attachments.": "Décrivez le problème et indiquez la version de l’application. Retirez les données personnelles des pièces jointes.",
+  "Capture in 3 seconds": "Capturer dans 3 secondes",
+  "Mute / unmute": "Muet / réactiver le son",
+  "Button gestures": "Appuis des boutons",
+  "Left arrow": "Flèche gauche",
+  "Right arrow": "Flèche droite",
+  "Running…": "En cours…"
 }

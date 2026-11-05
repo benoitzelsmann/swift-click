@@ -1,15 +1,43 @@
 """Accessible, reorderable routine nodes with painted connectors."""
 import copy
-from PySide6.QtCore import Qt,QSize,QPointF
-from PySide6.QtGui import QColor,QPainter,QPen,QPolygonF
-from PySide6.QtWidgets import QStyledItemDelegate,QAbstractItemView
-from ui_controls import SelectionList
+from PySide6.QtCore import Qt,QSize,QPointF,QRect,QMimeData,Signal
+from PySide6.QtGui import QColor,QPainter,QPen,QPolygonF,QFont,QDrag
+from PySide6.QtWidgets import QStyledItemDelegate,QAbstractItemView,QApplication
+from ui_controls import SelectionList,KeyboardButton
 from settings import STEP_ACTIONS,step_problem
 from i18n import tr
-from ui_icons import icon
+from ui_icons import icon,action_icon
 
 SYMBOLS = {"open":"open","activate":"window","close":"close","minimize":"minimize",
            "switch":"switch","click":"click","seek_back":"back","seek_forward":"forward","wait":"clock"}
+ACTION_MIME = "application/x-swiftclick-action"
+
+
+class ActionChoice(KeyboardButton):
+    """An action supports both a normal click and a drag into the sequence."""
+    def __init__(self, text, action):
+        super().__init__(text)
+        self.action = action
+        self.press_position = None
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def mousePressEvent(self, event):
+        self.press_position = event.position().toPoint() if event.button() == Qt.MouseButton.LeftButton else None
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self.press_position is not None and event.buttons() & Qt.MouseButton.LeftButton and (event.position().toPoint()-self.press_position).manhattanLength() >= QApplication.startDragDistance():
+            self.press_position = None
+            self.setDown(False)
+            data = QMimeData()
+            data.setData(ACTION_MIME,self.action.encode("ascii"))
+            drag = QDrag(self)
+            drag.setMimeData(data)
+            drag.setPixmap(self.grab())
+            drag.setHotSpot(event.position().toPoint())
+            drag.exec(Qt.DropAction.CopyAction)
+            return
+        super().mouseMoveEvent(event)
 
 
 def step_text(step, cfg):
@@ -26,59 +54,79 @@ def step_text(step, cfg):
 
 class FlowDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index):
-        return QSize(270,88)
+        return QSize(290,90)
 
     def paint(self, painter, option, index):
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        rect = option.rect.adjusted(4,9,-5,-12)
-        center = rect.center().x()
-        painter.setPen(QPen(QColor("#b7cfc4"),1.5))
+        rect = option.rect.adjusted(42,4,-4,-14)
+        center = option.rect.left()+18
+        mid = rect.center().y()
+        painter.setPen(QPen(QColor("#73988e"),2))
         if index.row():
-            painter.drawLine(center,option.rect.top(),center,rect.top()-3)
+            painter.drawLine(center,option.rect.top(),center,mid-16)
             painter.setBrush(QColor("#86ae9b"))
-            painter.drawPolygon(QPolygonF([QPointF(center-3,rect.top()-6),QPointF(center+3,rect.top()-6),QPointF(center,rect.top()-2)]))
+            painter.drawPolygon(QPolygonF([QPointF(center-4,mid-21),QPointF(center+4,mid-21),QPointF(center,mid-16)]))
         if index.row() < index.model().rowCount()-1:
-            painter.drawLine(center,rect.bottom(),center,option.rect.bottom()+1)
+            painter.drawLine(center,mid+15,center,option.rect.bottom()+1)
         view = self.parent()
         selected = view.currentRow() == index.row()
         step = index.data(Qt.ItemDataRole.UserRole)
         cfg = view.config()
         problem = step_problem(step,cfg)
-        painter.setPen(QPen(QColor("#bd6b54" if problem else "#67a88c" if selected else "#dce6e1"),1.3))
-        painter.setBrush(QColor("#ecf6f1" if selected else "#ffffff"))
-        painter.drawRoundedRect(rect,9,9)
-        symbol_rect = rect.adjusted(12,19,0,0)
-        symbol_rect.setSize(QSize(26,26))
-        icon(SYMBOLS[step["action"]],"#a74f3c" if problem else "#287e68").paint(painter,symbol_rect)
-        title,target = step_text(step,cfg)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#185f50" if selected else "#e7eeec"))
+        number_rect = QRect(center-14,mid-14,28,28)
+        painter.drawEllipse(number_rect)
         font = painter.font()
+        font.setHintingPreference(QFont.HintingPreference.PreferFullHinting)
         font.setPixelSize(13)
         font.setBold(True)
         painter.setFont(font)
+        painter.setPen(QColor("#ffffff" if selected else "#244a40"))
+        painter.drawText(number_rect,Qt.AlignmentFlag.AlignCenter,str(index.row()+1))
+        painter.setPen(QPen(QColor("#b6533d" if problem else "#277961" if selected else "#ccd7d2"),2 if selected else 1))
+        painter.setBrush(QColor("#f0f8f4" if selected else "#ffffff"))
+        painter.drawRoundedRect(rect,10,10)
+        symbol_rect = QRect(rect.left()+12,rect.top()+12,22,22)
+        icon(SYMBOLS[step["action"]],"#a74f3c" if problem else "#287e68").paint(painter,symbol_rect)
+        target = cfg["windows"].get(step.get("window_id"),{})
+        if step["action"] != "wait":
+            logo = action_icon("shift_up" if "mywhoosh" in target.get("path","").casefold() else "mouse_click")
+            logo.paint(painter,QRect(rect.right()-29,rect.top()+12,18,18))
+        title,target = step_text(step,cfg)
+        font.setPixelSize(15)
+        font.setBold(True)
+        painter.setFont(font)
         painter.setPen(QColor("#18202b"))
-        text_rect = rect.adjusted(48,10,-10,-30)
-        painter.drawText(text_rect,Qt.AlignmentFlag.AlignVCenter,painter.fontMetrics().elidedText(str(index.row()+1)+" · "+title,Qt.TextElideMode.ElideRight,text_rect.width()))
-        font.setPixelSize(12)
+        text_rect = rect.adjusted(44,8,-36,-35)
+        painter.drawText(text_rect,Qt.AlignmentFlag.AlignVCenter,painter.fontMetrics().elidedText(title,Qt.TextElideMode.ElideRight,text_rect.width()))
+        font.setPixelSize(13)
         font.setBold(False)
         painter.setFont(font)
-        painter.setPen(QColor("#a74f3c" if problem else "#66756e"))
-        text_rect = rect.adjusted(48,34,-10,-8)
+        painter.setPen(QColor("#a74f3c" if problem else "#334638"))
+        text_rect = rect.adjusted(14,38,-12,-10)
         text = tr(problem) if problem else target
         painter.drawText(text_rect,Qt.AlignmentFlag.AlignVCenter,painter.fontMetrics().elidedText(text,Qt.TextElideMode.ElideRight,text_rect.width()))
         painter.restore()
 
 
 class FlowList(SelectionList):
+    actionDropped = Signal(str,int)
+
     def __init__(self, config):
         super().__init__()
         self.config = config
+        self.drop_row = None
         self.setItemDelegate(FlowDelegate(self))
         self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDropIndicatorShown(True)
+        self.setDragDropOverwriteMode(False)
+        self.setAutoScroll(True)
+        self.viewport().setCursor(Qt.CursorShape.OpenHandCursor)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setAccessibleName("Routine diagram")
         self.setStyleSheet("QListWidget {background:transparent;border:0;padding:0;} QListWidget::item {padding:0;margin:0;}")
@@ -92,8 +140,67 @@ class FlowList(SelectionList):
             self.append(step)
 
     def append(self, step):
-        self.addItem("")
-        self.set_step(self.count()-1,step)
+        self.insert_step(self.count(),step)
+
+    def insert_step(self, row, step):
+        self.insertItem(row,"")
+        self.item(row).setFlags(self.item(row).flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
+        self.set_step(row,step)
+
+    def insertion_row(self, position):
+        index = self.indexAt(position)
+        if not index.isValid():
+            return self.count()
+        return index.row() + int(position.y() >= self.visualRect(index).center().y())
+
+    def is_action_drop(self, event):
+        return isinstance(event.source(),ActionChoice) and event.source().action in STEP_ACTIONS and event.mimeData().hasFormat(ACTION_MIME)
+
+    def dragEnterEvent(self, event):
+        if self.is_action_drop(event) and self.count() < 32:
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+        elif event.source() is self:
+            super().dragEnterEvent(event)
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if self.is_action_drop(event) and self.count() < 32:
+            self.drop_row = self.insertion_row(event.position().toPoint())
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+            self.viewport().update()
+        elif event.source() is self:
+            super().dragMoveEvent(event)
+        else:
+            event.ignore()
+
+    def dragLeaveEvent(self, event):
+        self.drop_row = None
+        super().dragLeaveEvent(event)
+        self.viewport().update()
+
+    def dropEvent(self, event):
+        if self.is_action_drop(event) and self.count() < 32:
+            row = self.insertion_row(event.position().toPoint())
+            event.setDropAction(Qt.DropAction.CopyAction)
+            event.accept()
+            self.drop_row = None
+            self.actionDropped.emit(event.source().action,row)
+        elif event.source() is self:
+            super().dropEvent(event)
+        else:
+            event.ignore()
+        self.viewport().update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.drop_row is not None:
+            y = self.visualItemRect(self.item(self.drop_row)).top() if self.drop_row < self.count() else self.visualItemRect(self.item(self.count()-1)).bottom()+1 if self.count() else 4
+            painter = QPainter(self.viewport())
+            painter.setPen(QPen(QColor("#22765d"),3))
+            painter.drawLine(42,y,self.viewport().width()-5,y)
 
     def set_step(self, row, step):
         item = self.item(row)

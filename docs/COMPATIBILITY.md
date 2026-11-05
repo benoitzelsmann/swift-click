@@ -1,29 +1,56 @@
-# Compatibility and 1.2.0 draft status
+# Swift Click 1.3.0 compatibility
 
-| Component | Windows release candidate |
+1.3.0 is a public unsigned Windows beta. The following separates implemented
+features, completed checks and hardware qualification still in progress.
+
+| Component | Scope |
 | --- | --- |
 | Operating system | Windows 11 x64, Intel or AMD |
-| Controller | Zwift Click V2 right, tested firmware 1.2.0 |
-| Other controllers | Left Click V2, Click V1, Play and Ride controls are not supported |
-| MyWhoosh | Network connection through OpenBikeControl |
-| Media | Windows media and volume commands |
-| Video navigation | Complete left/right key presses to the selected Video window; player needs keyboard focus |
-| Window control | Named targets, MyWhoosh/media detection, verified foreground and visual sequences |
-| MyWhoosh arrows | Separate from gears; held key released on focus loss; junction behaviour unverified |
-| Mouse | Current pointer or named physical screen coordinates |
-| macOS / Windows ARM | Not qualified |
+| Controller | Zwift Click V2 right, Y/A/B/Z/+, tested firmware 1.2.0 |
+| Other controllers | Left Click V2, Click V1, Play and Ride are not supported |
+| MyWhoosh gears | OpenBikeControl network connection; independent of foreground focus |
+| Media | Windows volume, mute/unmute, play/pause and previous/next track |
+| Video | Complete left/right key presses to the selected Media window; player needs keyboard focus |
+| Windows | Named targets, MyWhoosh/media discovery and verified foreground activation |
+| Routines | Ordered open, activate, minimize, normal close, switch, click, seek and wait steps |
+| MyWhoosh arrows | Separate from gears; held keys released on focus loss; junction behaviour unverified |
+| Mouse | Current pointer or named physical coordinates; targeted routine clicks check window ownership |
+| macOS / Windows ARM | Not available or qualified |
 | Browser extension | Not used |
 
-The development PC has been used to test media commands and MyWhoosh shifting. For 1.0.0, a real right controller with firmware 1.2.0 transmitted all five buttons and disconnected cleanly in a read-only test. A native named mouse click reached a local test button once on each of two real displays at 125% and 100% scaling, with the pointer restored after each click. These tests do not establish compatibility with every Windows PC.
+## Completed checks
 
-The UI was rendered and checked at simulated 100%, 125%, 150% and 200% scaling in both languages, at minimum and default window sizes. The installer checks include executable manifest validation and live Per-Monitor V2 window awareness.
+- 145 automated tests cover gesture boundaries/exclusivity, mute assignment,
+  multimedia key pairs, migration, saved references, routine editing/reordering,
+  cancellation, activation denial, covered clicks and held-key release.
+- English/French layouts checked at minimum and default sizes, including 100%,
+  125%, 150% and 200% simulated scaling during the UI review. The combined media
+  selector was checked at minimum size at 100% and 125% in 1.3.0.
+- The right controller transmitted all five buttons in a read-only physical check.
+  Earlier real media commands and MyWhoosh shifting worked on the development PC.
+- A named click reached a local test button exactly once on each of two displays
+  at 120/96 DPI, with pointer restoration. Simulated tests cover negative origins,
+  changed displays and physical movement taking priority over cursor restoration.
+- Native minimize/normal-close checks used disposable windows. A GUI-triggered
+  focus test completed six MyWhoosh/media switches and a routine return without
+  sending keys/clicks to the target apps. Unattended Windows contexts can still
+  refuse activation; the app stops instead of sending input to the wrong window.
+- Installer checks include x64 payload, resources, Per-Monitor V2/asInvoker
+  manifest, isolated startup/migration/running-app upgrade/uninstall, and user-data
+  preservation. The installed 1.3.0 on the development PC matches the frozen build.
 
-Clean-PC installation, physical negative-coordinate/disconnected-monitor scenarios, real YouTube/Netflix mouse targets and two 90-minute controller sessions remain part of qualification. Video seeking depends on the player, its focus and shortcuts. A named mouse target must be repositioned when the target window moves or the display configuration changes.
+## Remaining qualification
 
-The new foreground service is covered by cancellation, activation-denial, ambiguous-window and key-release tests. Physical MyWhoosh/Edge switching and MyWhoosh lateral/junction behaviour remain unqualified: MyWhoosh reported a server error during preparation. Simulated tests are not ride qualification.
+An independent clean-PC installation, two 90-minute rides including 30 minutes
+without input, controller-driven foreground routines during a ride, real
+YouTube/Netflix mouse targets, MyWhoosh lane/junction semantics, and physical
+negative-coordinate/disconnected-monitor scenarios remain to be qualified.
+Simulated checks do not establish compatibility with every Windows PC.
 
-The 1.2 candidate passed 138 automated tests. Native mouse clicks passed on both attached displays (125% and 100%), with one click and cursor restoration. Native minimize/normal close passed on disposable windows. A live MyWhoosh/media focus check completed one switch, then Windows refused activation; no keys or clicks were sent. Reliable repeated switching remains to be qualified. The isolated 1.2 installer passed migration from the 1.0 configuration format, normal launch, running-app upgrade and uninstall. The development installation retained its configuration and assignments.
+The optional keep-awake method is experimental. It is restricted to the tested
+right controller firmware 1.2.0 and explicit consent. It uses the firmware-update
+mechanism and can erase the secondary firmware slot. Long-term effects are not
+qualified. Normal shutdown attempts to exit that mode before closing.
 
-The optional keep-awake method uses the controller's firmware-update mechanism. It is restricted to the tested hardware/firmware and explicit consent. Long-term effects have not been qualified. Normal app closure attempts to exit this mode before shutdown.
-
-Please include the Swift Click version and Windows version in reports. Do not publish Bluetooth addresses, private screen captures or unedited logs containing personal paths.
+Report the app/Windows versions and steps to reproduce. Remove personal details,
+Bluetooth addresses and private paths from public screenshots and logs.
