@@ -57,7 +57,7 @@ QLabel#brand { font-size:18px; font-weight:700; }
 QLabel#title { font-size:24px; font-weight:700; }
 QLabel#muted { color:#626d7c; }
 QFrame#card { background:white; border:1px solid #e1e5eb; border-radius:12px; }
-QFrame#binding { background:transparent; border:1px solid transparent; border-radius:6px; }
+QFrame#binding { background:#fbfcfd; border:1px solid #d7dfe7; border-radius:10px; }
 QFrame#binding[selected="true"] { background:#edf6f2; border-color:#86b6a5; }
 QPushButton { background:white; border:1px solid #dfe3e9; border-radius:8px; padding:8px 16px; font-weight:600; }
 QPushButton:hover { background:#f1f3f8; border-color:#c0c8d7; }
@@ -69,11 +69,10 @@ QPushButton#nav { border:0; border-bottom:2px solid transparent; border-radius:0
 QPushButton#nav:checked { color:#18202b; border-bottom-color:#18202b; background:transparent; }
 QFrame#subnav { background:white; border-bottom:1px solid #e5e7ed; }
 QPushButton#subnavButton { border:1px solid transparent; background:transparent; color:#626d7c; padding:5px 13px; }
-QPushButton#subnavButton:checked { color:#18202b; background:#edf0f3; }
-QPushButton#disclosureButton { border:1px solid transparent; background:transparent; text-align:left; padding:4px 0; }
-QPushButton#disclosureButton:checked { background:transparent; color:#18202b; }
-QListWidget#positions { background:white; border:0; border-radius:0; padding:2px; }
-QListWidget#positions::item:selected { background:#edf0f3; color:#18202b; }
+QPushButton#subnavButton:checked { color:#164e3d; background:#e4f3ec; border-color:#287e68; }
+QPushButton#disclosureButton { border:1px solid #dfe3e9; background:#f6f8f9; text-align:left; padding:6px 12px; }
+QPushButton#disclosureButton:hover { border-color:#86b6a5; }
+QPushButton#disclosureButton:checked { background:#e4f3ec; border-color:#78ae96; color:#164e3d; }
 QFrame#separator { background:#e8ebef; border:0; }
 QLabel#eyebrow { color:#287e68; font-size:12px; font-weight:600; }
 QScrollArea { border:0; background:#f4f5f7; }
@@ -891,7 +890,7 @@ def refresh_ui(w):
     if w.windows_page.rendered_language != language():
         w.windows_page.reload()
     if w.windows_page.opening:
-        w.windows_page.result.setText(w.controller.windows.result)
+        w.windows_page.set_result(w.controller.windows.result)
     if w.routines_page.testing:
         w.routines_page.result.setText(w.controller.windows.result)
     w.open_game_button.setEnabled(not w.opening_game and not w.closing)

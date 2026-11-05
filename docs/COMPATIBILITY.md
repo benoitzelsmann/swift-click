@@ -1,6 +1,6 @@
-# Swift Click 1.4.0 compatibility
+# Swift Click 1.7.1 compatibility
 
-1.4.0 is a public unsigned Windows beta. The following separates implemented
+1.7.1 is a public unsigned Windows beta. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
@@ -12,9 +12,10 @@ features, completed checks and hardware qualification still in progress.
 | Media | Windows volume, mute/unmute, play/pause and previous/next track |
 | Video | Complete left/right key presses to the selected Media window; player needs keyboard focus |
 | Windows | Named targets, MyWhoosh/media discovery and verified foreground activation |
+| Browser tabs | Existing tabs in Microsoft Edge and Google Chrome, matched by title |
 | Routines | Ordered open, activate, minimize, normal close, switch, click, seek and wait steps |
 | MyWhoosh arrows | Separate from gears; held keys released on focus loss; junction behaviour unverified |
-| Mouse | Current pointer or named physical coordinates; targeted routine clicks check window ownership |
+| Mouse | Named physical coordinates, local previews and associated windows; targeted routine clicks verify the window |
 | macOS / Windows ARM | Not available or qualified |
 | Browser extension | Not used |
 
@@ -22,7 +23,7 @@ Five editable timing controls were added in 1.4.0. Existing configurations recei
 
 ## Completed checks
 
-- 153 automated tests cover gesture boundaries/exclusivity, mute assignment,
+- 166 automated tests cover gesture boundaries/exclusivity, mute assignment,
   multimedia key pairs, migration, saved references, routine editing/reordering,
   cancellation, activation denial, covered clicks and held-key release.
 - English/French layouts checked at minimum and default sizes, including 100%,
@@ -33,13 +34,13 @@ Five editable timing controls were added in 1.4.0. Existing configurations recei
 - A named click reached a local test button exactly once on each of two displays
   at 120/96 DPI, with pointer restoration. Simulated tests cover negative origins,
   changed displays and physical movement taking priority over cursor restoration.
-- Native minimize/normal-close checks used disposable windows. A GUI-triggered
-  focus test completed six MyWhoosh/media switches and a routine return without
-  sending keys/clicks to the target apps. Unattended Windows contexts can still
-  refuse activation; the app stops instead of sending input to the wrong window.
+- The Routine Test button completed six alternating selections in Edge tabs and
+  six between Edge and MyWhoosh. The same twelve checks passed with Chrome using
+  local test pages. Swift Click was brought forward again before each click.
+  These checks exercised switching, not media playback or physical controller input.
 - Installer checks include x64 payload, resources, Per-Monitor V2/asInvoker
   manifest, isolated startup/migration/running-app upgrade/uninstall, and user-data
-  preservation. The installed 1.4.0 on the development PC matches the frozen build.
+  preservation. The 1.7.1 upgrade was checked on the development PC.
 
 ## Remaining qualification
 

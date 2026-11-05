@@ -8,6 +8,8 @@ controller.pre-v2.json
 controller.pre-v3.json
 window_actions.py
 window_discovery.py
+browser_tabs.py
+browser_worker.py
 controller.pre-v4.json
 settings.py
 server.py

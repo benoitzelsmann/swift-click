@@ -6,7 +6,7 @@ from PySide6.QtGui import QColor, QPainter, QCursor, QPen
 from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
     QStyledItemDelegate, QStyleOptionViewItem, QListWidget, QAbstractItemView,
-    QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,
+    QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,QHBoxLayout,QWidget,QSpinBox,QDoubleSpinBox,QAbstractSpinBox,
 )
 
 
@@ -28,6 +28,62 @@ class KeyboardButton(QPushButton):
             painter.drawRoundedRect(self.rect().adjusted(2,2,-3,-3),6,6)
 
 
+class NumericEditMixin:
+    def repair_editor(self):
+        self.lineEdit().setGeometry(self.rect().adjusted(10,4,-10,-4))
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        self.repair_editor()
+
+    def showEvent(self,event):
+        super().showEvent(event)
+        self.repair_editor()
+
+    def focusInEvent(self,event):
+        super().focusInEvent(event)
+        self.repair_editor()
+        if event.reason()==Qt.FocusReason.MouseFocusReason:
+            self.lineEdit().deselect()
+
+    def focusOutEvent(self,event):
+        super().focusOutEvent(event)
+        self.lineEdit().deselect()
+
+    def stepBy(self,steps):
+        super().stepBy(steps)
+        self.lineEdit().deselect()
+
+
+class NumericSpin(NumericEditMixin,QSpinBox): pass
+class NumericDoubleSpin(NumericEditMixin,QDoubleSpinBox): pass
+
+
+def number_stepper(field,title):
+    field.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+    field.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    field.setFixedWidth(120)
+    field.lineEdit().setStyleSheet('background:transparent;border:0;padding:0;min-height:0;color:#18202b;selection-background-color:#dff2e9;selection-color:#14523e;')
+    controls=QWidget()
+    line=QHBoxLayout(controls)
+    line.setContentsMargins(0,0,0,0)
+    line.setSpacing(6)
+    down=KeyboardButton('−')
+    up=KeyboardButton('+')
+    down.clicked.connect(field.stepDown)
+    up.clicked.connect(field.stepUp)
+    for button,verb in ((down,'Decrease'),(up,'Increase')):
+        button.setFixedSize(38,38)
+        button.setStyleSheet('padding:0;font-size:18px')
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        button.setAccessibleName(verb+' · '+title)
+    line.addWidget(down)
+    line.addWidget(field)
+    line.addWidget(up)
+    line.addStretch()
+    return controls,down,up
+
+
 class SelectionDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         clean = QStyleOptionViewItem(option)
@@ -42,6 +98,19 @@ class SelectionList(QListWidget):
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setTextElideMode(Qt.TextElideMode.ElideRight)
+
+
+class CatalogList(SelectionList):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setIconSize(QSize(30, 30))
+        self.setStyleSheet("""
+            QListWidget { background:white; border:0; padding:0; }
+            QListWidget::item { background:#f6f8f8; border:2px solid transparent;
+                border-radius:8px; padding:10px; margin-bottom:6px; }
+            QListWidget::item:hover { border-color:#b6d0c5; }
+            QListWidget::item:selected { background:#e4f3ec; border-color:#287e68; color:#164e3d; }
+        """)
 
 
 def message_box(parent, title, text, *, question=False, warning=False, accept="Confirm"):

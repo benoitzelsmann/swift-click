@@ -6,7 +6,10 @@ on the local network. PC commands are sent directly to Windows.
 Named mouse positions, display characteristics, button assignments, the controller's
 Bluetooth reference and activity logs are stored locally in the Windows user
 account. A local mouse-motion detector preserves physical pointer movements when
-restoring the pointer after a click. Mouse actions do not require screen recording.
+restoring the pointer after a click. When you capture a mouse position, Swift Click
+saves a small still image around that point and the window's identity with the
+position. The image stays in your local settings and is replaced on recapture.
+Remove personal screen content before sharing settings or backups.
 
 Selecting a window reads the titles and application paths of open windows. Only
 the saved application identities and titles are stored locally, along with

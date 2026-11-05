@@ -2,8 +2,16 @@
 from PySide6.QtCore import Qt, QRect, QRectF, QPointF, QFileInfo
 from PySide6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QPainterPath
 from PySide6.QtWidgets import QFileIconProvider, QLabel
+from pathlib import PureWindowsPath
 
 _CACHE = {}
+
+def application_name(path):
+    stem = PureWindowsPath(path).stem
+    names = {"msedge": "Edge", "chrome": "Chrome", "firefox": "Firefox", "brave": "Brave",
+             "mywhoosh": "MyWhoosh", "mywhooshwin": "MyWhoosh",
+             "systemsettings": "Settings", "applicationframehost": "Windows", "explorer": "Explorer"}
+    return names.get(stem.casefold(), stem[:40] or "Window")
 
 
 def icon(name, color="#287e68"):
@@ -17,7 +25,17 @@ def icon(name, color="#287e68"):
     painter.scale(4,4)
     painter.setPen(QPen(QColor(color),1.6,Qt.PenStyle.SolidLine,Qt.PenCapStyle.RoundCap,Qt.PenJoinStyle.RoundJoin))
     painter.setBrush(Qt.BrushStyle.NoBrush)
-    if name in ("window","windows"):
+    if name in ("chevron_right", "chevron_down"):
+        path = QPainterPath()
+        if name == "chevron_right":
+            points = [(9, 5), (16, 12), (9, 19)]
+        else:
+            points = [(5, 9), (12, 16), (19, 9)]
+        path.moveTo(*points[0])
+        for point in points[1:]:
+            path.lineTo(*point)
+        painter.drawPath(path)
+    elif name in ("window","windows"):
         if name == "windows":
             painter.drawRoundedRect(QRectF(3,3,15,13),2,2)
         painter.drawRoundedRect(QRectF(6,7,15,13),2,2)

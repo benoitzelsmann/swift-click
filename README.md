@@ -2,7 +2,7 @@
 
 Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
 
-[Download 1.4.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.4.0/SwiftClick-1.4.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.4.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download 1.7.1 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v1.7.1/SwiftClick-1.7.1-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v1.7.1) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 <img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
 
@@ -32,9 +32,9 @@ Base already removes the daily button-action limit. Pro is not required simply t
 - Enable Simple, Double, Long and Continuous hold independently on each button.
 - Control Windows volume, mute/unmute, play/pause and previous/next tracks.
 - Target a selected video window for left/right navigation, or MyWhoosh for its own arrow keys.
-- Save named windows, with automatic MyWhoosh/media detection.
+- Save named windows or specific Edge and Chrome tabs, with automatic MyWhoosh/media detection.
 - Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
-- Click at the current pointer position or at named points saved on your displays.
+- Click at the current pointer position or save a point with a local preview and its associated window.
 - Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
 - View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
 
@@ -51,15 +51,27 @@ Drag an action into the diagram, select its saved targets and choose **Confirm a
 Reorder the numbered cards by dragging or with the arrow buttons. Save the routine
 and assign **Run routine** to a Simple, Double or Long press under Settings → Buttons.
 
-![Visual routine editor with a video-window activation, a saved click and automatic return enabled](docs/images/routine-editor.png)
+<img src="docs/images/routine-editor.png" alt="Visual routine editor with a video-window activation, a saved click and automatic return enabled" width="660">
 
-For example, **Skip ad and return** displays your video window, clicks the named
-Skip ad point and returns to the window that was active before the routine.
-The point must still match a visible, clickable button. This does not detect ads
-automatically. A final **Switch** stays in the new window instead of returning.
+To skip a YouTube ad and return to MyWhoosh:
 
-The catalogue clearly marks the selected routine. Selecting one does not run it;
-use **Test**, **Stop**, or the controller gesture you assigned.
+1. With YouTube's **Skip** button visible, save its location under **Actions →
+   Mouse positions** as **Skip ad**. Save the YouTube tab under **Actions → Windows**.
+2. Create **Skip ad and return**. Add **Activate → YouTube**, then **Click
+   position → Skip ad**. Select **YouTube** as the click's window and enable
+   **Return to starting window**.
+3. Assign **Run routine → Skip ad and return** to a controller gesture. With
+   MyWhoosh in front and the **Skip** button still visible at the saved point,
+   press the gesture to click it and return to the ride.
+
+The click uses the saved screen coordinates. Capture the point again if you move
+the browser or change the player layout.
+
+For **Switch MyWhoosh and YouTube**, add one **Switch** step and select MyWhoosh
+and the saved YouTube tab. The controller uses the active window to choose where
+to go. In Swift Click, successive clicks on **Test** continue from the last
+activated target and display the destination. A final Switch leaves that target
+in front. Double-click a saved routine to edit it.
 
 Windows actions can make a button perform a complete sequence: display the video
 window, click a saved point, then return to MyWhoosh. Open, activate, minimize and
@@ -67,7 +79,7 @@ normal close steps work with named windows; Switch alternates between two target
 Clicks remain tied to physical screen positions, so reposition a target when its
 window moves. Windows activation is verified before targeted input is sent.
 
-![Routine catalogue with one selected example routine](docs/images/routines.png)
+<img src="docs/images/routines.png" alt="Routine catalogue with one selected example routine" width="660">
 
 [Read the full windows, clicks and routines guide](docs/ACTIONS.md).
 
@@ -77,11 +89,19 @@ The **Media** category groups volume, mute/unmute, playback, tracks and video se
 MyWhoosh and Windows icons identify where commands go. Continuous hold supports
 repeated volume/video commands; mute is a single toggle per gesture.
 
-![Unified media action picker with mute selected](docs/images/media-actions.png)
+<img src="docs/images/media-actions.png" alt="Unified media action picker with mute selected" width="660">
 
-![Named application windows with their default roles](docs/images/windows.png)
+<img src="docs/images/windows.png" alt="Named application windows with their default roles" width="660">
 
-![Named mouse position and its display coordinates](docs/images/mouse-positions.png)
+Select Edge or Chrome in **Actions → Windows** to see its open tabs. Save the
+whole window or pick an existing tab such as YouTube. Tabs are matched by title.
+
+<img src="docs/images/browser-tabs.png" alt="Short window names beside the automatically detected browser tabs" width="660">
+
+In **Mouse positions**, double-click a point to see its capture and associated
+window. Choosing that point in a routine fills the window when it is known.
+
+<img src="docs/images/position-editor.png" alt="Mouse position editor with a local preview and its associated window" width="660">
 
 ## Language and gesture settings
 
@@ -92,13 +112,13 @@ to restore the default values. Each press keeps the timings captured when it beg
 **Manage presses** on the
 Buttons page enables or disables each gesture without discarding its assignment.
 
-![Language selection and five editable gesture timing settings](docs/images/languages.png)
+<img src="docs/images/languages.png" alt="Language selection and five editable gesture timing settings" width="660">
 
 ## Download and install
 
 Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
 
-The 1.4.0 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
+The 1.7.1 package is a public unsigned Windows beta. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
 
 Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. Updates are downloaded and installed manually. There is no automatic updater in this release.
 

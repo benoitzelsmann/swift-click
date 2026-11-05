@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from app_paths import config_dir
 from i18n import apply_widgets
 from ui_controls import KeyboardButton
+from ui_icons import icon
 
 ASSETS = Path(__file__).with_name("assets")
 
@@ -88,6 +89,7 @@ class GuideImage(QWidget):
     def __init__(self, parent=None, *, expandable=True):
         super().__init__(parent)
         self.source = QPixmap()
+        self.image_path = None
         self.compact = False
         self.trim_gap = False
         self.expandable = expandable
@@ -99,7 +101,9 @@ class GuideImage(QWidget):
             self.setToolTip("Click to enlarge image")
 
     def set_step(self, step):
-        self.source = QPixmap(str(ASSETS / step.image))
+        if self.image_path != step.image:
+            self.source = QPixmap(str(ASSETS / step.image))
+            self.image_path = step.image
         self.compact = step.compact
         self.trim_gap = step.trim_gap
         self.setAccessibleName(step.caption + (" · Enlarge" if self.expandable else ""))
@@ -168,25 +172,36 @@ class GuideImage(QWidget):
             super().keyPressEvent(event)
 
 
+def disclosure_button(title, object_name):
+    button = KeyboardButton(title)
+    button.setObjectName(object_name)
+    button.setCheckable(True)
+    button.setIconSize(QSize(16, 16))
+    button.setAccessibleName(title)
+    button.setCursor(Qt.CursorShape.PointingHandCursor)
+    button.toggled.connect(lambda expanded: set_disclosure_icon(button, expanded))
+    set_disclosure_icon(button, False)
+    return button
+
+
+def set_disclosure_icon(button, expanded):
+    button.setIcon(icon("chevron_down" if expanded else "chevron_right"))
+
+
 class GuidePanel(QFrame):
     def __init__(self, key, steps, *, title="Connection guide"):
         super().__init__()
         self.setObjectName("card")
         self.steps = steps
-        self.heading = title
         self.index = 0
         self.key = f"guides/{key}/expanded-v2"
         self.preferences = QSettings(str(config_dir() / "interface.ini"), QSettings.Format.IniFormat)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 16, 24, 16)
         layout.setSpacing(16)
-        heading = QHBoxLayout()
-        self.toggle = KeyboardButton()
-        self.toggle.setObjectName("disclosureButton")
-        self.toggle.setCheckable(True)
-        self.toggle.setCursor(Qt.CursorShape.PointingHandCursor)
-        heading.addWidget(self.toggle, 1)
-        layout.addLayout(heading)
+        self.toggle = disclosure_button(title, "disclosureButton")
+        self.toggle.setFixedHeight(40)
+        layout.addWidget(self.toggle)
         self.content = QWidget()
         body = QVBoxLayout(self.content)
         body.setContentsMargins(0, 0, 0, 0)
@@ -217,9 +232,9 @@ class GuidePanel(QFrame):
         controls.addWidget(self.next)
         body.addLayout(controls)
         layout.addWidget(self.content)
-        self.toggle.toggled.connect(self.set_expanded)
         self.toggle.setChecked(self.preferences.value(self.key, False, type=bool))
         self.set_expanded(self.toggle.isChecked(), remember=False)
+        self.toggle.toggled.connect(self.set_expanded)
         self.go(0)
 
     def set_expanded(self, expanded, *, remember=True):
@@ -227,8 +242,6 @@ class GuidePanel(QFrame):
         if not expanded and focused is not None and self.content.isAncestorOf(focused):
             self.toggle.setFocus(Qt.FocusReason.OtherFocusReason)
         self.content.setVisible(expanded)
-        self.toggle.setText(("⌄ " if expanded else "› ") + self.heading)
-        self.toggle.setAccessibleName(self.heading)
         if remember:
             self.preferences.setValue(self.key, expanded)
 
@@ -254,16 +267,11 @@ class GuidePanel(QFrame):
 class Disclosure(QFrame):
     def __init__(self, title):
         super().__init__()
-        self.title = title
         self.setObjectName("disclosure")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
-        self.toggle = KeyboardButton("› " + title)
-        self.toggle.setAccessibleName(title)
-        self.toggle.setObjectName("quiet")
-        self.toggle.setCheckable(True)
-        self.toggle.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.toggle = disclosure_button(title, "quiet")
         self.toggle.setStyleSheet("text-align:left")
         layout.addWidget(self.toggle)
         self.content = QWidget()
@@ -273,7 +281,6 @@ class Disclosure(QFrame):
         layout.addWidget(self.content)
         self.content.hide()
         self.toggle.toggled.connect(self.set_expanded)
-        self.toggle.toggled.connect(lambda expanded: self.toggle.setText(("⌄ " if expanded else "› ") + self.title))
 
     def set_expanded(self, expanded):
         focused = QApplication.focusWidget()

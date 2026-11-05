@@ -3,9 +3,9 @@ import copy
 import threading
 import uuid
 from PySide6.QtCore import Qt,QSize
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QStackedWidget,QLineEdit,QDoubleSpinBox
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QStackedWidget,QLineEdit
 from desktop_ui import make_page,card,label,push
-from ui_controls import SelectionList,ToggleSwitch,confirm_dialog
+from ui_controls import CatalogList,SelectionList,ToggleSwitch,confirm_dialog,NumericDoubleSpin,number_stepper
 from ui_icons import icon,badge,application_icon
 from flow_widgets import FlowList,ActionChoice,step_text,SYMBOLS
 from settings import STEP_ACTIONS,routine_steps,step_problem
@@ -36,11 +36,10 @@ class RoutinesPage(QWidget):
         catalogue = QWidget()
         box = QVBoxLayout(catalogue)
         box.setContentsMargins(0,0,0,0)
-        self.list = SelectionList()
-        self.list.setIconSize(QSize(34,34))
+        self.list = CatalogList()
         self.list.setAccessibleName("Saved routines")
-        self.list.setStyleSheet("QListWidget {background:white;border:0;padding:0;} QListWidget::item {padding:14px;margin-bottom:6px;background:#f6f8f8;border:2px solid transparent;} QListWidget::item:selected {background:#e4f3ec;border:2px solid #287e68;color:#164e3d;}")
         self.list.currentItemChanged.connect(self.selection)
+        self.list.itemDoubleClicked.connect(self.edit_item)
         box.addWidget(self.list,1)
         self.empty = QWidget()
         empty = QVBoxLayout(self.empty)
@@ -136,13 +135,15 @@ class RoutinesPage(QWidget):
             widget.setProperty("i18nUserText",True)
             widget.setProperty("i18nUserAccessible",True)
             prop.addWidget(widget)
-        self.seconds = QDoubleSpinBox()
+        self.seconds = NumericDoubleSpin()
         self.seconds.setRange(.1,10.)
         self.seconds.setSingleStep(.1)
         self.seconds.setDecimals(1)
+        self.seconds.setSuffix(' s')
         self.seconds.setAccessibleName("Wait in seconds")
         self.seconds.valueChanged.connect(self.set_seconds)
-        prop.addWidget(self.seconds)
+        self.wait_control,self.wait_down,self.wait_up=number_stepper(self.seconds,'Wait in seconds')
+        prop.addWidget(self.wait_control)
         self.step_note = label("")
         self.step_note.setStyleSheet("color:#364657;font-size:13px")
         prop.addWidget(self.step_note)
@@ -232,7 +233,7 @@ class RoutinesPage(QWidget):
         self.update_controls()
 
     def edit(self):
-        if not self.ident:
+        if not self.ident or self.testing:
             return
         routine = self.config()["routines"][self.ident]
         self.result.hide()
@@ -242,6 +243,10 @@ class RoutinesPage(QWidget):
         self.choose_action()
         self.stack.setCurrentIndex(1)
         self.update_controls()
+
+    def edit_item(self, item):
+        self.selection(item)
+        self.edit()
 
     def choose_action(self):
         self.pending_step = None
@@ -276,7 +281,7 @@ class RoutinesPage(QWidget):
         step = self.pending_step
         action = step["action"]
         self.step_title.setText(tr(STEP_ACTIONS[action]))
-        for field,button in (("window_id",self.window_button),("other_window_id",self.other_button),("position_id",self.position_button)):
+        for field,button in (("position_id",self.position_button),("window_id",self.window_button),("other_window_id",self.other_button)):
             button.setVisible(field in step)
             source = self.config()["positions" if field == "position_id" else "windows"]
             target = source.get(step.get(field))
@@ -284,11 +289,12 @@ class RoutinesPage(QWidget):
             button.setText(button.fontMetrics().elidedText(text,Qt.TextElideMode.ElideRight,max(170,button.width()-40)))
             button.setAccessibleName(text)
             button.setIcon(icon("position") if field == "position_id" else application_icon(target["path"]) if target else icon("window"))
-        self.seconds.setVisible(action == "wait")
+        self.wait_control.setVisible(action == "wait")
         if action == "wait":
             self.seconds.blockSignals(True)
             self.seconds.setValue(step["seconds"])
             self.seconds.blockSignals(False)
+            self.update_wait_buttons()
         notes = {"close":"Normal close: the application's confirmation dialogs remain active.",
                  "seek_back":"Keep keyboard focus on the video player inside the selected browser window.",
                  "seek_forward":"Keep keyboard focus on the video player inside the selected browser window."}
@@ -300,7 +306,12 @@ class RoutinesPage(QWidget):
     def set_seconds(self, value):
         if self.pending_step and self.pending_step["action"] == "wait":
             self.pending_step["seconds"] = value
+            self.update_wait_buttons()
             self.update_controls()
+
+    def update_wait_buttons(self):
+        self.wait_down.setEnabled(self.seconds.value() > self.seconds.minimum())
+        self.wait_up.setEnabled(self.seconds.value() < self.seconds.maximum())
 
     def pick(self, field):
         self.pick_field = field
@@ -308,6 +319,8 @@ class RoutinesPage(QWidget):
         self.pick_title.setText("Mouse positions" if positions else "Windows")
         self.target_choices.clear()
         for ident,target in self.config()["positions" if positions else "windows"].items():
+            if self.pending_step["action"] in ("minimize", "close") and target.get("tab_match"):
+                continue
             self.target_choices.addItem(target["name"])
             item = self.target_choices.item(self.target_choices.count()-1)
             item.setData(Qt.ItemDataRole.UserRole,ident)
@@ -318,7 +331,12 @@ class RoutinesPage(QWidget):
         self.target_choices.setFocus()
 
     def picked(self, item):
-        self.pending_step[self.pick_field] = item.data(Qt.ItemDataRole.UserRole)
+        ident = item.data(Qt.ItemDataRole.UserRole)
+        self.pending_step[self.pick_field] = ident
+        if self.pick_field == "position_id" and not self.pending_step["window_id"]:
+            window_id = self.config()["positions"][ident].get("window_id")
+            if window_id in self.config()["windows"]:
+                self.pending_step["window_id"] = window_id
         self.refresh_step()
         self.panels.setCurrentIndex(1)
 
@@ -419,8 +437,10 @@ class RoutinesPage(QWidget):
         self.test_stop = threading.Event()
         self.update_controls()
         try:
-            completed = await self.owner.controller.windows.run({"action":"routine","routine_id":self.ident},copy.deepcopy(self.config()),self.test_stop)
-            self.result.setText("Action completed" if completed else "Cancelled")
+            service = self.owner.controller.windows
+            completed = await service.run({"action":"routine","routine_id":self.ident},copy.deepcopy(self.config()),
+                                          self.test_stop,resume_switch=True)
+            self.result.setText(service.result if completed else "Cancelled")
         except (RuntimeError,OSError) as exc:
             self.result.setText(str(exc))
         finally:

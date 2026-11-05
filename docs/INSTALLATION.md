@@ -21,8 +21,11 @@ is saved locally and does not restart Bluetooth or MyWhoosh. Custom mouse-positi
 names remain unchanged. Credits and Contact are also available under Settings.
 GitHub feedback links work independently of the future support email address.
 
-Actions contains Mouse positions, Windows and Routines, in preparation order.
-Define reusable targets first, then create or edit a routine using those targets.
+Actions contains Mouse positions, Windows and Routines. Select Edge or Chrome
+in the window picker to see its open tabs. Double-click a saved item to edit it.
+New mouse captures include a small local preview. Selecting a captured position
+in a routine fills the window when it can be identified. Edit an older position
+and capture it again to add this information.
 The Dashboard's Open MyWhoosh button launches the registered game or activates
 its running window. Start session establishes Swift Click's connections separately.
 

@@ -4,11 +4,13 @@
 
 1. In **Actions → Mouse positions**, give a point a name and choose Capture position.
    Swift Click hides for three seconds. Place the pointer on the target; capture
-   records it without clicking. Reposition it after moving the target window or
-   changing a display's resolution/scaling.
+   saves a small preview and identifies the window under the pointer. Double-click
+   a saved point to edit it or capture it again after a move or display change.
 2. In **Actions → Windows**, add and name any open application window. **Detect**
    looks for MyWhoosh and media sessions reported by Windows. It fills unconfigured
    defaults only when a single target is found. Otherwise select the window yourself.
+   Selecting Edge or Chrome also shows its open tabs. Choose **Entire window** or
+   select a tab. Its title must match exactly one open tab when a routine runs.
 3. Assign the MyWhoosh and Media defaults for direct arrow commands. Other saved windows can be
    used by routines. If several windows of the same app cannot be distinguished
    after a restart, select the intended one again.
@@ -42,15 +44,16 @@ cards to reorder them, or use the bordered Up, Down and Remove controls below.
 ![Visual sequence with numbered, reorderable actions](images/routine-editor.png)
 
 - **Open** starts the saved application if needed, or displays its existing window.
-  Restoring a specific document or browser tab depends on the application.
+  For a named browser target, it selects the matching open tab.
 - **Activate** displays an already open window.
 - **Minimize / Close window** affect that window. Close is a normal close request;
   unsaved-document confirmations remain in control of the application.
-- **Switch** alternates between two saved windows. From another app, it displays
-  the first target. A final Switch stays in the new window; automatic return is
-  unavailable because it would immediately undo the switch. Existing switch
-  routines follow this same rule.
+- **Switch** alternates between two saved windows or between two tabs in one
+  browser. A controller press from a third app displays the first target. **Test**
+  uses the last target Swift Click successfully activated when the app is in
+  front, so repeated tests alternate too. A final Switch leaves the target in front.
 - **Click position** activates its window and checks the saved point before clicking.
+  Selecting the point fills the associated window when the window field is empty.
 - **Seek backward / forward** activates its window and sends a complete left/right
   key press. The video player needs keyboard focus inside the browser.
 - **Wait** pauses between actions for 0.1–10 seconds.
@@ -68,6 +71,8 @@ sequence. Disconnecting or closing Swift Click discards pending actions. If you
 switch windows manually, the routine stops instead of pulling focus back.
 
 ![Selected routine in the catalogue](images/routines.png)
+
+![Named mouse positions in the Actions catalogue](images/mouse-positions.png)
 
 ## Keep the controller simple
 
