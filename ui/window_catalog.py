@@ -5,12 +5,12 @@ import re
 import time
 import uuid
 from collections import Counter
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget,QButtonGroup
 from ui_controls import ChoiceGroup
 from desktop_ui import card,label,push,make_page
 from ui_controls import CatalogList,confirm_dialog
-from ui_icons import icon,application_icon,application_name
+from ui_icons import icon,application_icon,application_name,site_icon,paired_icon
 from i18n import tr,language
 from settings import role_ref,routine_steps,routine_references
 from browser_tabs import list_tabs, matching_tabs, supported
@@ -20,6 +20,16 @@ from destinations import SITES, website_url, site_host
 def tab_site(title):
     return next((site for site in ("YouTube", "Netflix", "Deezer", "Spotify", "Twitch")
                  if site.casefold() in title.casefold()), "")
+
+
+def address_site(url):
+    """Known service behind a website address, e.g. youtube.com → YouTube."""
+    try:
+        host = site_host(url)
+    except (ValueError, UnicodeError):
+        return ""
+    return next((name for name, address in SITES.items()
+                 if host == site_host(address) or host.endswith("." + site_host(address))), "")
 
 
 class WindowsPage(QWidget):
@@ -57,6 +67,8 @@ class WindowsPage(QWidget):
         content = QVBoxLayout(catalogue)
         content.setContentsMargins(0,0,0,0)
         self.saved = CatalogList()
+        # Browser tabs show the browser and the site side by side; other entries line up with them.
+        self.saved.setIconSize(QSize(66, 30))
         self.saved.setAccessibleName("Saved windows")
         self.saved.currentItemChanged.connect(self.selection)
         self.saved.itemDoubleClicked.connect(self.edit_item)
@@ -90,7 +102,7 @@ class WindowsPage(QWidget):
         edit.addWidget(self.name)
         self.kind = ChoiceGroup(translate=True)
         self.kind.addItem("Application", "application")
-        self.kind.addItem("Website", "website")
+        self.kind.addItem("Browser tab", "website")
         self.kind.setAccessibleName("Destination type")
         self.kind.currentIndexChanged.connect(self.update_kind)
         edit.addWidget(self.kind)
@@ -111,18 +123,6 @@ class WindowsPage(QWidget):
         site_row.addWidget(self.url)
         edit.addWidget(self.site_fields)
         self.site_fields.hide()
-        role_line = QHBoxLayout()
-        role_line.addWidget(label("Default for","muted"))
-        group = QButtonGroup(self)
-        self.roles = {}
-        for role,title in ((None,"Neither"),("mywhoosh","MyWhoosh"),("video","Media")):
-            button = push(title,lambda _=False,r=role:setattr(self,"role",r))
-            button.setCheckable(True)
-            button.setObjectName("choice")
-            group.addButton(button)
-            self.roles[role] = button
-            role_line.addWidget(button)
-        edit.addLayout(role_line)
         columns = QHBoxLayout()
         columns.setSpacing(14)
         open_windows = QVBoxLayout()
@@ -210,21 +210,23 @@ class WindowsPage(QWidget):
                 state = tr("Available")
             except RuntimeError:
                 state = tr("Not open")
-            roles = [tr(title) for role,title in (("mywhoosh","MyWhoosh"),("video","Media")) if role_ref(cfg,role) == ident]
-            detail = " · ".join([*roles,state])
-            if target.get('kind') == 'website':
-                detail = site_host(target['url']) + " · " + tr("Website checked when shown")
+            detail = state
+            match = target.get("tab_match")
+            site = None
+            if target.get('kind') == 'website' or match:
+                # A browser tab: the browser's logo, then the site's.
+                site = address_site(target['url']) if target.get('kind') == 'website' else tab_site(match)
+                where = site_host(target['url']) if target.get('kind') == 'website' else (site or match[:48])
+                detail = tr("{browser} tab").format(browser=tr(application_name(target["path"]))) + " · " + where
             if target.get('needs_review'):
                 detail = tr("Needs review: choose a website or application")
-            match = target.get("tab_match")
-            if match:
-                detail += " · " + tr("Tab") + " · " + (tab_site(match) or match[:48])
             name = target["name"]
             if len(name) > 32 and name == target["title"][:60].strip() and not match:
                 name = tr(application_name(target["path"]))
             self.saved.addItem(name+"\n"+detail)
             item = self.saved.item(self.saved.count()-1)
-            item.setIcon(application_icon(target["path"]))
+            browser = application_icon(target["path"])
+            item.setIcon(paired_icon(browser, site_icon(site)) if site is not None else paired_icon(browser))
             item.setData(Qt.ItemDataRole.UserRole,ident)
             if ident == selected:
                 self.saved.setCurrentItem(item)
@@ -263,7 +265,6 @@ class WindowsPage(QWidget):
         self.kind.setCurrentIndex(0)
         self.url.clear()
         self.preset.setCurrentIndex(0)
-        self.roles[None].setChecked(True)
         self.populate()
         self.stack.setCurrentIndex(1)
         self.show_tabs()
@@ -279,7 +280,6 @@ class WindowsPage(QWidget):
         self.preset.setCurrentIndex(0)
         self.name.setText(target["name"])
         self.role = next((r for r in ("mywhoosh","video") if role_ref(self.owner.controller.config,r) == self.ident),None)
-        self.roles[self.role].setChecked(True)
         self.populate()
         try:
             window = self.owner.controller.windows.target(self.editing, self.owner.controller.config, self.available)
@@ -300,7 +300,6 @@ class WindowsPage(QWidget):
         else:
             self.new()
             self.role = role
-            self.roles[role].setChecked(True)
             self.name.setText("MyWhoosh" if role == "mywhoosh" else tr("Media"))
 
     def populate(self):
@@ -457,8 +456,22 @@ class WindowsPage(QWidget):
         self.select_button.setEnabled(bool(self.name.text().strip()) and (self.list.currentRow() >= 0 or self.editing is not None)
                                       and (self.kind.currentData() != 'website' or bool(self.url.text().strip())))
 
+    def inferred_role(self, cfg, window):
+        """MyWhoosh is the game target; the first media destination becomes the media target."""
+        if self.role:
+            return self.role
+        from destinations import protected_game
+        path = window.path if window else cfg["windows"].get(self.editing, {}).get("path", "")
+        if protected_game({"path": path}):
+            return "mywhoosh"
+        if role_ref(cfg, "video") not in cfg["windows"]:
+            return "video"
+        return None
+
     def select(self):
         cfg = copy.deepcopy(self.owner.controller.config)
+        index = self.list.currentRow()
+        self.role = self.inferred_role(cfg, self.available[index] if index >= 0 else None)
         ident = self.editing or (self.role if self.role and self.role not in cfg["windows"] else str(uuid.uuid4()))
         index = self.list.currentRow()
         target = copy.deepcopy(cfg["windows"].get(ident,{}))

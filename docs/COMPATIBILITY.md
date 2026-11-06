@@ -1,6 +1,6 @@
-# Swift Click 3.1.0 compatibility
+# Swift Click 3.5.0 compatibility
 
-3.1.0 is a Windows desktop release with an unsigned installer. The following separates implemented
+3.5.0 is a Windows desktop release with an unsigned installer. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
@@ -16,6 +16,7 @@ features, completed checks and hardware qualification still in progress.
 | Routines | Simple actions plus ordered open, activate, minimize, normal close, switch, click, seek and wait steps; routines cannot close or minimize MyWhoosh |
 | MyWhoosh moves | OpenBikeControl Steer Left/Right when MyWhoosh announces them, otherwise A / D keys with MyWhoosh in front |
 | MyWhoosh junctions | Reads the on-screen direction tiles at press time and clicks the matching arrow inside MyWhoosh; tested with MyWhoosh 5.7.0 at 1920 × 1080 |
+| MyWhoosh ERG intensity | Finds the Intensity bar at press time and clicks − or + inside MyWhoosh, 1 to 10 clicks per press; recognised from a MyWhoosh 5.7.0 capture, not yet qualified in a live workout |
 | Mouse | Named physical coordinates, local previews and associated windows; targeted routine clicks verify the window |
 | macOS / Windows ARM | Not available or qualified |
 | Browser extension | Not used |

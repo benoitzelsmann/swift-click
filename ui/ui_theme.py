@@ -115,6 +115,10 @@ QPushButton#choice, QPushButton#chip { background:@subtle; border:1px solid tran
 QPushButton#choice:hover, QPushButton#chip:hover { border-color:@strong_border; background:@subtle; }
 QPushButton#choice:checked, QPushButton#chip:checked { background:@selection; border-color:@accent; color:@text; }
 QPushButton#chip:disabled { background:@disabled_surface; color:@disabled; }
+QPushButton#option { background:@subtle; border:1px solid transparent; border-radius:10px; text-align:left; padding:8px 12px; }
+QPushButton#option:hover { border-color:@strong_border; background:@hover; }
+QPushButton#option:checked { background:@selection; border-color:@accent; color:@text; font-weight:600; }
+QLabel#pill { color:@text; font-size:12px; background:@subtle; border-radius:11px; padding:4px 10px; }
 QPushButton#category { background:@subtle; border:1px solid transparent; border-radius:12px; text-align:left; padding:13px 16px; }
 QPushButton#category:hover { background:@hover; border-color:@strong_border; }
 QPushButton#disclosureButton { border:1px solid transparent; background:@subtle; border-radius:10px; text-align:left; padding:9px 14px; font-weight:600; }

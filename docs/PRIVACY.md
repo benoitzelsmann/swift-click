@@ -12,7 +12,8 @@ position. The image stays in your local settings and is replaced on recapture.
 Remove personal screen content before sharing settings or backups.
 
 Junction actions read a small band of the MyWhoosh window only when you press the
-assigned gesture, to find the direction tiles and their arrows. The pixels are
+assigned gesture, to find the direction tiles and their arrows. ERG intensity actions
+read the MyWhoosh window the same way, to find the − and + buttons of the Intensity bar. The pixels are
 analysed in memory on your PC and discarded immediately; nothing is saved or sent.
 
 Selecting a window reads the titles and application paths of open windows. Only

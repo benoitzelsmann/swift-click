@@ -1,5 +1,5 @@
 """Small vector interface icons and cached native application icons."""
-from PySide6.QtCore import Qt, QRect, QRectF, QPointF, QFileInfo
+from PySide6.QtCore import Qt, QRect, QRectF, QPointF, QFileInfo, QSize
 from PySide6.QtGui import QIconEngine, QIcon, QPixmap, QPainter, QPen, QColor, QPainterPath
 from PySide6.QtWidgets import QFileIconProvider, QLabel
 from pathlib import PureWindowsPath
@@ -150,6 +150,32 @@ def _render_icon(name, color):
     elif name == "plus":
         painter.drawLine(12,5,12,19)
         painter.drawLine(5,12,19,12)
+    elif name == "minus":
+        painter.drawLine(5,12,19,12)
+    elif name == "chevron_up":
+        path = QPainterPath(QPointF(5,15))
+        path.lineTo(12,8)
+        path.lineTo(19,15)
+        painter.drawPath(path)
+    elif name in ("arrow_left","arrow_right"):
+        if name == "arrow_right":
+            painter.translate(24,0)
+            painter.scale(-1,1)
+        painter.drawLine(5,12,19,12)
+        painter.drawLine(11,6,5,12)
+        painter.drawLine(5,12,11,18)
+    elif name in ("turn_left","turn_right"):
+        # Junction arrows as MyWhoosh draws them: up the stem, then a turn.
+        if name == "turn_right":
+            painter.translate(24,0)
+            painter.scale(-1,1)
+        path = QPainterPath(QPointF(16,20))
+        path.lineTo(16,12)
+        path.quadTo(16,8,12,8)
+        path.lineTo(5,8)
+        painter.drawPath(path)
+        painter.drawLine(9,4,5,8)
+        painter.drawLine(5,8,9,12)
     elif name == "check":
         path = QPainterPath(QPointF(5,12.5))
         path.lineTo(10,17.5)
@@ -210,6 +236,21 @@ def _render_icon(name, color):
         path.lineTo(12,13)
         path.lineTo(20,7)
         painter.drawPath(path)
+    elif name == "globe":
+        painter.drawEllipse(QRectF(3,3,18,18))
+        painter.drawEllipse(QRectF(8,3,8,18))
+        painter.drawLine(QPointF(3.5,9),QPointF(20.5,9))
+        painter.drawLine(QPointF(3.5,15),QPointF(20.5,15))
+    elif name == "community":
+        painter.drawEllipse(QRectF(6,4,6,6))
+        path = QPainterPath(QPointF(3,19))
+        path.cubicTo(3,14.5,6,13,9,13)
+        path.cubicTo(12,13,15,14.5,15,19)
+        painter.drawPath(path)
+        painter.drawEllipse(QRectF(14,6,5,5))
+        side = QPainterPath(QPointF(16,13.2))
+        side.cubicTo(19,13,21,14.5,21,18)
+        painter.drawPath(side)
     elif name == "bug":
         painter.drawRoundedRect(QRectF(7.5,7,9,13),4.5,4.5)
         painter.drawLine(12,11,12,20)
@@ -356,7 +397,8 @@ def application_icon(path):
 
 
 def action_icon(action):
-    if action in ("shift_up","shift_down","whoosh_left","whoosh_right","junction_left","junction_straight","junction_right"):
+    if action in ("shift_up","shift_down","whoosh_left","whoosh_right","junction_left","junction_straight","junction_right",
+                  "intensity_down","intensity_up"):
         from pathlib import Path
         return QIcon(str(Path(__file__).with_name("assets")/"mywhoosh.png"))
     if action == "none":
@@ -389,3 +431,74 @@ class IconBadge(QLabel):
 
 def badge(name, size=42):
     return IconBadge(name,size)
+
+
+def site_icon(site):
+    """Small recognisable mark for a known streaming site; a globe for any other site."""
+    key = ("site", site)
+    if key in _CACHE:
+        return _CACHE[key]
+    if site not in ("YouTube", "Netflix", "Spotify", "Deezer", "Twitch"):
+        return icon("globe", role="accent")
+    pixmap = QPixmap(96, 96)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.scale(4, 4)
+    painter.setPen(Qt.PenStyle.NoPen)
+    if site == "YouTube":
+        painter.setBrush(QColor("#ff0000"))
+        painter.drawRoundedRect(QRectF(1, 5, 22, 15), 4.5, 4.5)
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawPolygon([QPointF(10, 9), QPointF(16, 12.5), QPointF(10, 16)])
+    elif site == "Netflix":
+        painter.setBrush(QColor("#141414"))
+        painter.drawRoundedRect(QRectF(2, 2, 20, 20), 4, 4)
+        painter.setBrush(QColor("#e50914"))
+        painter.drawRect(QRectF(7, 5, 3, 14))
+        painter.drawRect(QRectF(14, 5, 3, 14))
+        painter.drawPolygon([QPointF(7, 5), QPointF(10, 5), QPointF(17, 19), QPointF(14, 19)])
+    elif site == "Spotify":
+        painter.setBrush(QColor("#1ed760"))
+        painter.drawEllipse(QRectF(1.5, 1.5, 21, 21))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        for y, width, half in ((9, 2.4, 6.5), (12.8, 2, 5.5), (16.2, 1.6, 4.5)):
+            painter.setPen(QPen(QColor("#121212"), width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            path = QPainterPath(QPointF(12 - half, y))
+            path.quadTo(12, y - 2.4, 12 + half, y + .8)
+            painter.drawPath(path)
+    elif site == "Deezer":
+        painter.setBrush(QColor("#a238ff"))
+        painter.drawRoundedRect(QRectF(2, 2, 20, 20), 5, 5)
+        painter.setBrush(QColor("#ffffff"))
+        for x, top in ((5, 12), (9.5, 9), (14, 6), (18.5 - 1, 10)):
+            painter.drawRect(QRectF(x, top, 3, 18 - top))
+    else:  # Twitch
+        painter.setBrush(QColor("#9146ff"))
+        painter.drawPolygon([QPointF(4, 2), QPointF(21, 2), QPointF(21, 14), QPointF(16, 19), QPointF(12, 19),
+                             QPointF(9, 22), QPointF(9, 19), QPointF(4, 19)])
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawRect(QRectF(11, 6, 2, 6))
+        painter.drawRect(QRectF(15.5, 6, 2, 6))
+    painter.end()
+    _CACHE[key] = QIcon(pixmap)
+    return _CACHE[key]
+
+
+def paired_icon(first, second=None, side=30, gap=6):
+    """Two icons side by side (browser, then site), or one at the same left position."""
+    ratio = 2
+    pixmap = QPixmap((side * 2 + gap) * ratio, side * ratio)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+    full = side * ratio
+    # QIcon.paint never enlarges a small native icon; draw a pixmap scaled to the slot instead.
+    painter.drawPixmap(QRect(0, 0, full, full), first.pixmap(QSize(full, full)))
+    if second is not None:
+        inset = full // 8
+        painter.drawPixmap(QRect((side + gap) * ratio + inset, inset, full - 2 * inset, full - 2 * inset),
+                           second.pixmap(QSize(full, full)))
+    painter.end()
+    pixmap.setDevicePixelRatio(ratio)
+    return QIcon(pixmap)

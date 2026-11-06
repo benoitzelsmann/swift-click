@@ -8,7 +8,7 @@ from PySide6.QtCore import (
     Signal,
     QSize,
 )
-from PySide6.QtGui import QPainter, QPixmap
+from PySide6.QtGui import QPainter, QPixmap, QFont, QFontMetrics, QColor
 from PySide6.QtWidgets import (
     QWidget,
     QFrame,
@@ -29,7 +29,8 @@ from ui_icons import action_icon,icon
 
 ACTION_GROUPS = {
     "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right",
-                 "junction_left", "junction_straight", "junction_right"),
+                 "junction_left", "junction_straight", "junction_right",
+                 "intensity_down", "intensity_up"),
     "Media": ("volume_down", "volume_up", "volume_mute", "media_previous", "media_play_pause", "media_next", "seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
     "Routines": ("routine",),
@@ -44,6 +45,85 @@ COLORS = {
 }
 from ui_theme import stylesheet, color
 STYLE = stylesheet("light")
+
+# Inside a group the context is already given, so tiles keep short names and clear symbols.
+PICKER_TEXT = {"whoosh_left": "Move left", "whoosh_right": "Move right",
+               "junction_left": "Left turn", "junction_straight": "Straight on", "junction_right": "Right turn",
+               "intensity_down": "Intensity −", "intensity_up": "Intensity +"}
+PICKER_SYMBOLS = {"shift_up": "chevron_up", "shift_down": "chevron_down",
+                  "whoosh_left": "arrow_left", "whoosh_right": "arrow_right",
+                  "junction_left": "turn_left", "junction_straight": "arrow_up", "junction_right": "turn_right",
+                  "intensity_down": "minus", "intensity_up": "plus"}
+GESTURE_MARKS = {"short": "", "double": "×2", "long": "Long", "hold": "Hold"}
+
+
+def picker_icon(action):
+    return icon(PICKER_SYMBOLS[action], role="accent") if action in PICKER_SYMBOLS else action_icon(action)
+
+
+class UsageBadges(QWidget):
+    """Coloured key badges on the right of an action tile: which presses already use it."""
+    def __init__(self, button):
+        super().__init__(button)
+        self.button = button
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.summary = ""
+        self.badges = []
+        self.hide()
+        button.installEventFilter(self)
+
+    def text(self):
+        return self.summary
+
+    def set_uses(self, uses, summary):
+        self.summary = summary if uses else ""
+        self.badges = [({"a": "#5f9a2e"}.get(key, COLORS[key]), ("+" if key == "plus" else key.upper()) +
+                        (" " + tr(GESTURE_MARKS[gesture]) if GESTURE_MARKS[gesture] else ""))
+                       for key, gesture in uses[:3]]
+        if len(uses) > 3:
+            self.badges.append((None, f"+{len(uses) - 3}"))
+        self.button.setToolTip(self.summary)
+        self.button.setProperty("i18nUserTooltip", True)
+        self.button.setAccessibleDescription(self.summary)
+        self.setVisible(bool(uses))
+        self.place()
+        # Keep the label clear of the badges.
+        self.button.setStyleSheet(f"padding-right:{self.width() + 18}px" if uses else "")
+        self.update()
+
+    def badge_font(self):
+        font = QFont(self.font())
+        font.setPixelSize(11)
+        font.setBold(True)
+        return font
+
+    def place(self):
+        metrics = QFontMetrics(self.badge_font())
+        width = sum(metrics.horizontalAdvance(text) + 16 for _, text in self.badges) + 4 * max(0, len(self.badges) - 1)
+        self.resize(max(1, width), 20)
+        self.move(self.button.width() - self.width() - 10, (self.button.height() - self.height()) // 2)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setFont(self.badge_font())
+        metrics = painter.fontMetrics()
+        x = 0
+        for fill, text in self.badges:
+            width = metrics.horizontalAdvance(text) + 16
+            rect = QRectF(x, 0, width, 20)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(fill or color("subtle")))
+            painter.drawRoundedRect(rect, 10, 10)
+            painter.setPen(QColor("white") if fill else QColor(color("muted")))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
+            x += width + 4
+        painter.end()
+
+    def eventFilter(self, watched, event):
+        if event.type() == event.Type.Resize:
+            self.place()
+        return False
 
 
 def label(text, name=None, size=None):
@@ -61,7 +141,7 @@ BUTTON_ICONS = {
     "Test": "play", "Show": "eye", "Save": "check", "Save window": "check", "Save directions": "check",
     "Save action": "check", "Done": "check", "Confirm action": "check", "Refresh": "refresh",
     "Refresh networks": "refresh", "Reset": "reset", "Reset timings": "reset", "Restore MyWhoosh link": "reset",
-    "Start session": "play", "Stop": "stop", "Open MyWhoosh": "open", "Open GitHub": "code",
+    "Start session": "play", "Stop": "stop", "Open MyWhoosh": "open", "Open GitHub": "code", "Visit website": "globe", "Join the community": "community",
     "View release": "open", "Third-party licenses": "document", "Check for updates": "update",
     "Send an email": "mail", "Report a problem": "bug", "Suggest an improvement": "idea",
     "Copy technical details": "copy", "Export settings": "export", "Restore settings": "import",
@@ -219,19 +299,21 @@ class ControllerEditor(QWidget):
         self.choices_frame = choices
         choice_box.setContentsMargins(18, 16, 18, 16)
         choice_box.setSpacing(10)
+        # Title and current action on one line; no explanatory grey notes.
+        header = QHBoxLayout()
+        header.setSpacing(10)
         self.choice_title = label("", size=18)
         self.choice_title.setProperty("i18nUserText", True)
-        choice_box.addWidget(self.choice_title)
-        self.current_assignment = label("","muted")
+        self.choice_title.setWordWrap(False)
+        header.addWidget(self.choice_title)
+        header.addStretch()
+        self.current_assignment = label("","pill")
         self.current_assignment.setProperty("i18nUserText",True)
-        choice_box.addWidget(self.current_assignment)
+        self.current_assignment.setWordWrap(False)
+        header.addWidget(self.current_assignment, alignment=Qt.AlignmentFlag.AlignVCenter)
+        choice_box.addLayout(header)
         self.timing = label("","muted")
         self.timing.hide()
-        self.timing.setStyleSheet("font-size:12px")
-        choice_box.addWidget(self.timing)
-        self.action_note = label("","muted")
-        self.action_note.setStyleSheet("font-size:12px")
-        choice_box.addWidget(self.action_note)
         self.back_to_actions = push("Action types",self.show_actions)
         self.back_to_actions.setObjectName("quiet")
         self.back_to_actions.hide()
@@ -257,8 +339,8 @@ class ControllerEditor(QWidget):
         self.group_title = label("",size=16)
         actions_box.addWidget(self.group_title)
         self.action_grid = QGridLayout()
-        self.action_grid.setHorizontalSpacing(12)
-        self.action_grid.setVerticalSpacing(8)
+        self.action_grid.setHorizontalSpacing(10)
+        self.action_grid.setVerticalSpacing(10)
         actions_box.addLayout(self.action_grid)
         self.pick_pages.addWidget(action_page)
         self.options = QButtonGroup(self)
@@ -267,13 +349,11 @@ class ControllerEditor(QWidget):
         self.rendered_language = None
         self.active_group = None
         for index, action in enumerate(ASSIGNABLE):
-            option = KeyboardButton(ACTIONS[action][1])
+            option = KeyboardButton(PICKER_TEXT.get(action, ACTIONS[action][1]))
             option.setObjectName("choice")
             option.setProperty("action", action)
-            option.setIcon(action_icon(action))
+            option.setIcon(picker_icon(action))
             option.setIconSize(QSize(18,18))
-            if action in ("whoosh_left","whoosh_right"):
-                option.setText("Move left" if action == "whoosh_left" else "Move right")
             option.setCheckable(True)
             option.setMinimumHeight(34)
             self.options.addButton(option)
@@ -284,21 +364,13 @@ class ControllerEditor(QWidget):
                 option.setMinimumHeight(34)
                 category_grid.addWidget(option,2,0,1,2)
             else:
-                cell = QWidget(action_page)
-                cell_box = QVBoxLayout(cell)
-                cell_box.setContentsMargins(0,0,0,0)
-                cell_box.setSpacing(2)
-                cell_box.addWidget(option)
-                used = label("","muted")
-                used.setProperty("i18nUserText",True)
-                used.setStyleSheet("font-size:12px")
-                used.setFixedHeight(18)
-                used.setWordWrap(False)
-                used.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Fixed)
-                cell_box.addWidget(used)
-                self.usage_labels[action] = used
-                self.option_cells[action] = cell
-                cell.hide()
+                # One clean tile per action; tiles already in use carry coloured key badges.
+                option.setObjectName("option")
+                option.setMinimumHeight(42)
+                option.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Fixed)
+                self.usage_labels[action] = UsageBadges(option)
+                self.option_cells[action] = option
+                option.hide()
         self.options.buttonClicked.connect(self.apply_choice)
         positions_page = QWidget()
         positions_box = QVBoxLayout(positions_page)
@@ -388,7 +460,6 @@ class ControllerEditor(QWidget):
         self.settings.setCurrentIndex(1)
 
     def show_actions(self):
-        self.action_note.hide()
         self.choices_frame.setMinimumWidth(540)
         self.choices_frame.setMaximumWidth(640)
         for option in self.options.buttons():
@@ -411,11 +482,6 @@ class ControllerEditor(QWidget):
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
         self.group_title.setText(tr(group))
-        self.action_note.setText("Keep the video player focused in the browser." if group == "Video" else
-                                 "Move across the road, or pick the road at a junction." if group == "MyWhoosh" else
-                                 "Click here, or at a saved position." if group == "Mouse" else
-                                 "Runs its actions in order. Edit in Actions → Routines." if group == "Windows & routines" else "")
-        self.action_note.setVisible(bool(self.action_note.text()))
         for cell in self.option_cells.values():
             self.action_grid.removeWidget(cell)
             cell.hide()
@@ -423,15 +489,18 @@ class ControllerEditor(QWidget):
         for index, action in enumerate(allowed):
             cell = self.option_cells[action]
             if group == "MyWhoosh":
-                # Gears, then lateral moves, then the three junction buttons on one line.
-                junction = action.startswith("junction_")
-                position = allowed.index(action) - (4 if junction else 0)
-                row, span = (2, 2) if junction else (position // 2, 3)
-                self.action_grid.addWidget(cell, row, (position % (3 if junction else 2)) * span, 1, span, Qt.AlignmentFlag.AlignTop)
+                # Gears, then lateral moves, then the three junction buttons on one line,
+                # then ERG intensity − / + on the last line.
+                if action.startswith("junction_"):
+                    row, column, span = 2, ("junction_left", "junction_straight", "junction_right").index(action) * 2, 2
+                elif action.startswith("intensity_"):
+                    row, column, span = 3, (0 if action == "intensity_down" else 3), 3
+                else:
+                    row, column, span = index // 2, index % 2 * 3, 3
+                self.action_grid.addWidget(cell, row, column, 1, span)
             else:
-                columns = 3 if group == "Media" else 2
-                # Top alignment keeps buttons on one line when only some show "Used by".
-                self.action_grid.addWidget(cell,index//columns,index%columns,Qt.AlignmentFlag.AlignTop)
+                columns = 2
+                self.action_grid.addWidget(cell,index//columns,index%columns)
             cell.show()
         self.pick_pages.setCurrentIndex(1)
         self.back_to_actions.show()
@@ -456,7 +525,7 @@ class ControllerEditor(QWidget):
             return routine["name"] if routine else tr("Choose a routine")
         return tr(ACTIONS[action_id(binding)][1])
 
-    def uses(self, action, position_id=None):
+    def uses(self, action, position_id=None, detailed=False):
         found = []
         for key, gestures in self.window_owner.controller.config["buttons"].items():
             for gesture, binding in gestures.items():
@@ -464,8 +533,8 @@ class ControllerEditor(QWidget):
                     continue
                 if position_id is not None and binding.get("position_id") != position_id:
                     continue
-                found.append(("+" if key == "plus" else key.upper()) + " · " +
-                             tr(GESTURE_NAMES[gesture]))
+                found.append((key, gesture) if detailed else
+                             ("+" if key == "plus" else key.upper()) + " · " + tr(GESTURE_NAMES[gesture]))
         return found
 
     def usage_text(self, action, position_id=None):
@@ -484,8 +553,7 @@ class ControllerEditor(QWidget):
         if self.active_group:
             self.group_title.setText(tr(self.active_group))
         for action, used in self.usage_labels.items():
-            used.setText(self.usage_text(action) if self.uses(action) else "")
-            used.setVisible(bool(used.text()))
+            used.set_uses(self.uses(action, detailed=True), self.usage_text(action))
         for group, button in self.category_buttons.items():
             allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
             button.setText(tr(group))
