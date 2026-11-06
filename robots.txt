@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://benoitzelsmann.github.io/swift-click/sitemap.xml

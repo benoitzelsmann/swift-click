@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swift Click — Use your Zwift Click with MyWhoosh on Windows (free)</title>
+<meta name="description" content="Swift Click is a free Windows app that lets you use a Zwift Click V2 controller with MyWhoosh: virtual shifting, steering, junction choices, media controls and one-press routines. No account, no subscription.">
+<link rel="canonical" href="https://benoitzelsmann.github.io/swift-click/">
+<link rel="icon" href="images/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="images/icon-128.png">
+<meta name="theme-color" content="#2563eb">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Swift Click — Zwift Click for MyWhoosh on Windows">
+<meta property="og:description" content="Free Windows app: shift gears, steer, choose junctions and control your music from a Zwift Click V2 while riding MyWhoosh.">
+<meta property="og:url" content="https://benoitzelsmann.github.io/swift-click/">
+<meta property="og:image" content="https://benoitzelsmann.github.io/swift-click/images/og.png">
+<meta property="og:image:width" content="1640">
+<meta property="og:image:height" content="856">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Swift Click",
+  "applicationCategory": "SportsApplication",
+  "operatingSystem": "Windows 10 22H2, Windows 11 (x64)",
+  "description": "Free Windows app that connects a Zwift Click V2 controller to MyWhoosh for virtual shifting, steering, junction choices, media controls and routines.",
+  "url": "https://benoitzelsmann.github.io/swift-click/",
+  "downloadUrl": "https://github.com/benoitzelsmann/swift-click/releases/latest",
+  "softwareVersion": "3.1.0",
+  "image": "https://benoitzelsmann.github.io/swift-click/images/og.png",
+  "author": {"@type": "Person", "name": "Benoît Zelsmann", "url": "https://github.com/benoitzelsmann"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Can I use a Zwift Click with MyWhoosh?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes, on Windows, with Swift Click. It reads the right-hand Zwift Click V2 over Bluetooth and sends gear changes and steering to MyWhoosh through the OpenBikeControl protocol."}},
+    {"@type": "Question", "name": "Is Swift Click free?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. No account, no subscription, no daily action limit and no telemetry."}},
+    {"@type": "Question", "name": "Which controllers are supported?",
+     "acceptedAnswer": {"@type": "Answer", "text": "The right-hand Zwift Click V2 (buttons Y, A, B, Z and +). The left-hand controller, Click V1, Zwift Play and Zwift Ride are not supported."}},
+    {"@type": "Question", "name": "Does Swift Click work on Mac, iPad, Android or Apple TV?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. Swift Click runs on Windows 10 22H2 or Windows 11 (64-bit) with Bluetooth. MyWhoosh can run on the same PC or on another device on the same network."}},
+    {"@type": "Question", "name": "Can I choose my direction at junctions in MyWhoosh with the Zwift Click?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. Swift Click reads MyWhoosh's direction tiles on screen when you press and clicks the left, straight or right arrow, whether two or three tiles are shown."}},
+    {"@type": "Question", "name": "Windows warns that the installer is from an unknown publisher.",
+     "acceptedAnswer": {"@type": "Answer", "text": "The installer is not code-signed yet. Choose More info, then Run anyway. Only download it from the official GitHub releases page; the SHA-256 checksum is listed in the release notes."}}
+  ]
+}
+</script>
+<style>
+:root {
+  --bg:#f6f7f9; --surface:#ffffff; --subtle:#f0f2f5; --text:#15171a; --muted:#5a6170; --border:#e2e5ea;
+  --accent:#2563eb; --accent-hover:#1d4fd8; --on-accent:#ffffff; --soft:#e7effd;
+  --hero-a:#0b1220; --hero-b:#10213f; --hero-c:#1d4ed8;
+  --radius:16px; --max:1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#111317; --surface:#1a1d22; --subtle:#22262c; --text:#eef0f3; --muted:#a3aab6; --border:#2c3138;
+    --accent:#6ea8fe; --accent-hover:#8bb9ff; --on-accent:#0b1220; --soft:#1d3354;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#111317; --surface:#1a1d22; --subtle:#22262c; --text:#eef0f3; --muted:#a3aab6; --border:#2c3138;
+  --accent:#6ea8fe; --accent-hover:#8bb9ff; --on-accent:#0b1220; --soft:#1d3354;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing:antialiased; }
+img { max-width:100%; height:auto; display:block; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; }
+.wrap { max-width:var(--max); margin:0 auto; padding:0 24px; }
+
+/* Header */
+header.top { position:sticky; top:0; z-index:10; background:color-mix(in srgb, var(--hero-a) 88%, transparent); backdrop-filter:blur(10px); border-bottom:1px solid rgba(255,255,255,.08); }
+header.top .wrap { display:flex; align-items:center; gap:16px; height:64px; }
+.brand { display:flex; align-items:center; gap:10px; color:#fff; font-weight:700; font-size:18px; }
+.brand:hover { text-decoration:none; }
+.brand img { width:32px; height:32px; }
+nav.links { margin-left:auto; display:flex; gap:22px; }
+nav.links a { color:#c9d6ee; font-size:15px; font-weight:500; }
+nav.links a:hover { color:#fff; text-decoration:none; }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:12px; font-weight:600; font-size:16px; border:1px solid transparent; transition:background .15s, border-color .15s; }
+.btn:hover { text-decoration:none; }
+.btn svg { width:18px; height:18px; flex:none; }
+.btn-primary { background:#2563eb; color:#fff; }
+.btn-primary:hover { background:#1d4fd8; }
+.btn-ghost { color:#fff; border-color:rgba(255,255,255,.28); background:rgba(255,255,255,.06); }
+.btn-ghost:hover { background:rgba(255,255,255,.14); }
+
+/* Hero */
+.hero { background:linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 55%, var(--hero-c) 100%); color:#fff; overflow:hidden; position:relative; }
+.hero::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(-60deg, rgba(255,255,255,.035) 0 2px, transparent 2px 140px); pointer-events:none; }
+.hero .wrap { position:relative; display:grid; grid-template-columns:1.15fr .85fr; gap:40px; align-items:center; padding-top:72px; padding-bottom:72px; }
+.eyebrow { color:#8bb9ff; font-size:14px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; margin:0 0 14px; }
+.hero h1 { font-size:clamp(36px, 5.4vw, 60px); line-height:1.06; margin:0 0 20px; letter-spacing:-.02em; }
+.hero p.lead { font-size:19px; color:#c9d6ee; margin:0 0 30px; max-width:560px; }
+.cta { display:flex; flex-wrap:wrap; gap:12px; }
+.badges { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:26px; color:#a9bfe3; font-size:14px; }
+.badges span::before { content:"✓ "; color:#6ea8fe; font-weight:700; }
+.hero-art { position:relative; display:flex; justify-content:center; }
+.hero-art::before { content:""; position:absolute; width:120%; aspect-ratio:1; top:50%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(110,168,254,.45), transparent 62%); }
+.hero-art img { position:relative; width:min(420px, 100%); filter:drop-shadow(0 30px 40px rgba(0,0,0,.45)); }
+
+/* Sections */
+section { padding:80px 0; }
+section.alt { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+h2 { font-size:clamp(28px, 3.4vw, 38px); line-height:1.15; margin:0 0 14px; letter-spacing:-.015em; }
+.sub { color:var(--muted); font-size:18px; max-width:680px; margin:0 0 40px; }
+h3 { font-size:19px; margin:0 0 8px; }
+
+.shot { border-radius:var(--radius); border:1px solid var(--border); box-shadow:0 20px 50px -20px rgba(15,23,42,.35); background:var(--surface); }
+.shot-wide { margin-top:8px; }
+
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:step; }
+.step { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px; }
+.alt .step, .alt .card { background:var(--bg); }
+.step::before { counter-increment:step; content:counter(step); display:grid; place-items:center; width:36px; height:36px; border-radius:10px; background:var(--soft); color:var(--accent); font-weight:700; margin-bottom:14px; }
+.step p, .card p { margin:0; color:var(--muted); }
+
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px; }
+.icon { width:44px; height:44px; border-radius:12px; background:var(--soft); color:var(--accent); display:grid; place-items:center; margin-bottom:16px; }
+.icon svg { width:22px; height:22px; }
+.card ul { margin:10px 0 0; padding-left:18px; color:var(--muted); }
+
+.split { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+.split + .split { margin-top:72px; }
+.split.reverse > :first-child { order:2; }
+.split p { color:var(--muted); margin:0 0 14px; }
+.split ul { color:var(--muted); padding-left:18px; margin:0; }
+.split li { margin-bottom:6px; }
+
+table { width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+th, td { text-align:left; padding:14px 18px; border-bottom:1px solid var(--border); vertical-align:top; }
+tr:last-child td { border-bottom:0; }
+th { background:var(--subtle); font-size:14px; color:var(--muted); font-weight:600; }
+td:first-child { font-weight:600; white-space:nowrap; }
+td { color:var(--muted); }
+td:first-child { color:var(--text); }
+.table-wrap { overflow-x:auto; }
+
+ol.install { padding:0; margin:0; list-style:none; counter-reset:i; display:grid; gap:12px; }
+ol.install li { counter-increment:i; display:flex; gap:14px; align-items:flex-start; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; }
+ol.install li::before { content:counter(i); flex:none; display:grid; place-items:center; width:28px; height:28px; border-radius:8px; background:var(--accent); color:var(--on-accent); font-weight:700; font-size:14px; }
+.note { margin-top:20px; padding:16px 18px; border-radius:14px; background:var(--soft); color:var(--text); font-size:15px; }
+
+details { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:0 20px; margin-bottom:10px; }
+.alt details { background:var(--bg); }
+summary { cursor:pointer; list-style:none; padding:18px 0; font-weight:600; display:flex; justify-content:space-between; gap:16px; }
+summary::-webkit-details-marker { display:none; }
+summary::after { content:"+"; color:var(--accent); font-size:22px; line-height:1; }
+details[open] summary::after { content:"–"; }
+details p { margin:0 0 18px; color:var(--muted); }
+
+.community { background:linear-gradient(135deg, var(--hero-b), var(--hero-c)); color:#fff; border-radius:24px; padding:48px; display:grid; grid-template-columns:1fr auto; gap:32px; align-items:center; }
+.community h2 { color:#fff; }
+.community p { color:#c9d6ee; margin:0; font-size:18px; max-width:620px; }
+
+footer { padding:40px 0 56px; color:var(--muted); font-size:14px; }
+footer .wrap { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; }
+footer nav { display:flex; gap:18px; flex-wrap:wrap; }
+
+@media (max-width: 900px) {
+  .hero .wrap, .split, .community { grid-template-columns:1fr; }
+  .split.reverse > :first-child { order:0; }
+  .hero-art img { width:min(300px, 80%); }
+  .steps, .grid { grid-template-columns:1fr; }
+  nav.links { display:none; }
+  section { padding:60px 0; }
+  .community { padding:32px 24px; }
+}
+@media (max-width: 560px) {
+  .wrap { padding:0 16px; }
+  .btn { width:100%; justify-content:center; }
+  td:first-child { white-space:normal; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="images/icon.svg" alt="">Swift Click</a>
+    <nav class="links" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#routines">Routines</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://www.facebook.com/groups/1113287361465366/">Community</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Free · Windows · No account</p>
+      <h1>Ride MyWhoosh with your Zwift Click.</h1>
+      <p class="lead">Swift Click turns the five buttons of a Zwift Click V2 into gear changes, steering, junction choices, music controls and one-press routines, so you never leave the saddle to reach the keyboard or the mouse.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/benoitzelsmann/swift-click/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 19h16"/></svg>
+          Download for Windows
+        </a>
+        <a class="btn btn-ghost" href="https://www.facebook.com/groups/1113287361465366/">Join the community</a>
+        <a class="btn btn-ghost" href="https://github.com/benoitzelsmann/swift-click">GitHub</a>
+      </div>
+      <div class="badges"><span>Virtual shifting</span><span>Steering &amp; junctions</span><span>Media controls</span><span>No subscription</span></div>
+    </div>
+    <div class="hero-art"><img src="images/controller.png" alt="Zwift Click V2 right controller with Y, Z, A, B and + buttons" width="640" height="640"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Why Swift Click</h2>
+    <p class="sub">Many smart trainers ship with a Zwift Click. MyWhoosh is free to ride, but the Click doesn't pair with it for shifting. Swift Click bridges the two: it reads the controller over Bluetooth and talks to MyWhoosh on your local network through the OpenBikeControl protocol.</p>
+    <div class="steps">
+      <div class="step"><h3>Connect</h3><p>Pair the controller and MyWhoosh once, on a single Connections page with step-by-step guides.</p></div>
+      <div class="step"><h3>Assign</h3><p>Pick an action for each gesture of each button on a visual diagram of the controller.</p></div>
+      <div class="step"><h3>Ride</h3><p>Swift Click runs quietly in the background and sends every action the moment you press.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="features">
+  <div class="wrap">
+    <h2>Everything from the handlebars</h2>
+    <p class="sub">Five buttons, four gestures each: Simple, Double, Long and Hold. Up to twenty actions on one small controller.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></div>
+        <h3>Virtual shifting</h3>
+        <p>Gear up and down in MyWhoosh over the network. MyWhoosh doesn't even need to be in front.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7 3 12l5 5M16 7l5 5-5 5M3 12h18"/></svg></div>
+        <h3>Steering</h3>
+        <p>Move left and right across the road for as long as you hold, using MyWhoosh's own steering commands.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8m0 0L6 7m6 6 6-6M12 13V3M6 7H3V4m15 3h3V4"/></svg></div>
+        <h3>Junctions</h3>
+        <p>Choose left, straight or right. Swift Click reads the direction tiles on screen and clicks the right arrow, with two or three tiles.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <h3>Music &amp; video</h3>
+        <p>Volume, mute, play / pause, previous / next track and video seek, with Spotify, Deezer, YouTube, Netflix and more.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg></div>
+        <h3>Mouse clicks</h3>
+        <p>Click a saved spot on screen, like a "Skip ad" button, then the pointer goes back where it was. It never clicks a covered window.</p>
+      </div>
+      <div class="card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></div>
+        <h3>Routines</h3>
+        <p>Chain steps behind one press: show YouTube, skip the ad, come back to MyWhoosh.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="split">
+      <div>
+        <h2>Your controller, your layout</h2>
+        <p>Click a gesture on the diagram and pick its action. Only <em>Simple</em> is on by default so every press reacts instantly; choose <strong>Manage presses</strong> to switch on Double, Long or Hold where you need them.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Gesture</th><th>When it fires</th></tr></thead>
+            <tbody>
+              <tr><td>Simple</td><td>Short press, on release</td></tr>
+              <tr><td>Double</td><td>Two presses within 300 ms</td></tr>
+              <tr><td>Long</td><td>Held past 650 ms</td></tr>
+              <tr><td>Hold</td><td>Held past 1.5 s, repeats while held</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <img class="shot" src="images/controller-buttons.png" alt="Swift Click buttons page: each gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions" width="1166" height="917" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="routines">
+  <div class="wrap">
+    <div class="split reverse">
+      <div>
+        <h2>Routines in one press</h2>
+        <p>Build a routine visually: drag steps into the sequence, pick their target, reorder with the mouse, then test it before saving.</p>
+        <ul>
+          <li><strong>Open</strong> or <strong>activate</strong> an app or a website tab</li>
+          <li><strong>Switch</strong> between two windows on each press</li>
+          <li><strong>Click</strong> a saved position, after checking it's visible</li>
+          <li><strong>Seek</strong> in a video, <strong>wait</strong>, <strong>minimize</strong> or <strong>close</strong> a window</li>
+        </ul>
+        <p style="margin-top:14px">If you switch windows yourself, the routine stops instead of pulling focus back. MyWhoosh is never minimized or moved.</p>
+      </div>
+      <img class="shot" src="images/routine-editor.png" alt="Visual routine editor: open YouTube, click Skip, return to MyWhoosh" width="900" height="640" loading="lazy">
+    </div>
+    <div class="split">
+      <div>
+        <h2>Apps and websites</h2>
+        <p>Save MyWhoosh, any application, or a website such as YouTube, Netflix or Deezer. Websites are matched by address, so a new video title doesn't break them, and the right tab is selected in Edge or Chrome.</p>
+      </div>
+      <img class="shot" src="images/windows.png" alt="Applications and media page with saved apps and websites" width="900" height="640" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Install in two minutes</h2>
+    <p class="sub">Windows 10 22H2 or Windows 11 (64-bit) with Bluetooth, a right-hand Zwift Click V2, and MyWhoosh on the same PC or local network.</p>
+    <ol class="install">
+      <li><span>Download the file ending in <strong>Setup.exe</strong> from the <a href="https://github.com/benoitzelsmann/swift-click/releases/latest">latest release</a> and run it. Python is included.</span></li>
+      <li><span>In <strong>Connections</strong>, wake the controller and choose <strong>Connect</strong>.</span></li>
+      <li><span>Choose <strong>Connect</strong> for MyWhoosh, then in MyWhoosh click the <strong>OpenBikeControl</strong> handlebar icon and accept with <strong>YES</strong>.</span></li>
+      <li><span>Assign your buttons under <strong>Settings → Buttons</strong>, and ride.</span></li>
+    </ol>
+    <p class="note">The installer isn't code-signed yet, so Windows may show a warning: choose <strong>More info → Run anyway</strong>. Only download Swift Click from the official GitHub page. Updating keeps your settings.</p>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <h2>Frequently asked questions</h2>
+    <p class="sub">More answers and live help in the community.</p>
+    <details><summary>Is Swift Click really free?</summary><p>Yes. No account, no subscription, no daily action limit and no telemetry. Settings, positions and logs stay on your PC.</p></details>
+    <details><summary>Which controllers are supported?</summary><p>The right-hand Zwift Click V2 (buttons Y, A, B, Z and +). The left-hand controller, Click V1, Zwift Play and Zwift Ride are not supported yet.</p></details>
+    <details><summary>Does it work on Mac, iPad, Android or Apple TV?</summary><p>Swift Click runs on Windows only. MyWhoosh itself can run on the same PC or on another device on the same network.</p></details>
+    <details><summary>Does it work with Zwift, Rouvy or other apps?</summary><p>Swift Click is built for MyWhoosh. If you'd like another app, suggest it in the community.</p></details>
+    <details><summary>MyWhoosh won't connect.</summary><p>Make sure both are on the same network. In Swift Click choose Connect for MyWhoosh, then click the OpenBikeControl icon in MyWhoosh and accept with YES. If Windows asks, allow Swift Click on private networks. Still nothing? Restart MyWhoosh and connect again.</p></details>
+    <details><summary>I can only set one action per button.</summary><p>Only Simple is on by default. Go to Settings → Buttons → Manage presses, tick Double, Long or Hold, choose Done, then assign actions to the new slots.</p></details>
+    <details><summary>The junction buttons don't do anything.</summary><p>MyWhoosh must be visible on screen when the direction tiles appear. If the direction you asked for isn't offered, nothing is clicked, on purpose.</p></details>
+    <details><summary>Is it open source?</summary><p>The interface sources are public on GitHub. The Bluetooth engine is private for now.</p></details>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="community">
+      <div>
+        <h2>Join the Swift Click Community</h2>
+        <p>Get help with setup, share your button layouts and routines, suggest features, and test new versions before they're released.</p>
+      </div>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://www.facebook.com/groups/1113287361465366/">Join on Facebook</a>
+        <a class="btn btn-ghost" href="https://github.com/benoitzelsmann/swift-click/issues">Report an issue</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© Benoît Zelsmann · Swift Click is an independent project, not affiliated with Zwift or MyWhoosh. Product names belong to their owners.</div>
+    <nav aria-label="Links">
+      <a href="https://github.com/benoitzelsmann/swift-click">GitHub</a>
+      <a href="https://github.com/benoitzelsmann/swift-click/releases/latest">Download</a>
+      <a href="https://github.com/benoitzelsmann/swift-click/blob/main/docs/PRIVACY.md">Privacy</a>
+      <a href="https://www.facebook.com/groups/1113287361465366/">Community</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
