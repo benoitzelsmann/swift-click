@@ -4,7 +4,7 @@ Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**: change gear
 
 [Download 3.1.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v3.1.0/SwiftClick-3.1.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v3.1.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
-![Visual routine editor: open YouTube, click Skip, return to MyWhoosh](docs/images/routine-editor.png)
+![Controller buttons: every gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions](docs/images/controller-buttons.png)
 
 ## Why Swift Click
 
@@ -44,6 +44,8 @@ MyWhoosh offers no keyboard shortcut or network command for junctions, so Swift 
 Prepare **Mouse positions** and **Applications and media** under **Actions**, then build a routine: drag steps into the sequence, pick their targets, confirm. Assign it to a gesture under **Settings → Buttons → Routines** — the routine list opens directly.
 
 Example, *Skip ad and return*: show YouTube, click the saved *Skip* position, return to MyWhoosh.
+
+![Visual routine editor: open YouTube, click Skip, return to MyWhoosh](docs/images/routine-editor.png)
 
 ![Routine catalogue](docs/images/routines.png)
 
