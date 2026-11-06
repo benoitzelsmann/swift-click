@@ -1,6 +1,6 @@
 """Shared controls with keyboard-only focus cues and an accessible switch."""
 
-from PySide6.QtCore import Qt, QSize, QRectF, QVariantAnimation, QEasingCurve
+from PySide6.QtCore import Qt, QSize, QRect, QPoint, QRectF, QVariantAnimation, QEasingCurve, Signal
 from i18n import apply_widgets
 from ui_theme import color
 from PySide6.QtGui import QColor, QPainter, QCursor, QPen
@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
     QStyledItemDelegate, QStyleOptionViewItem, QListWidget, QAbstractItemView,
     QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,QHBoxLayout,QWidget,QSpinBox,QDoubleSpinBox,QAbstractSpinBox,QLineEdit,
+    QLayout, QSizePolicy,
 )
 
 
@@ -265,3 +266,189 @@ class ToggleSwitch(QCheckBox):
         painter.drawText(QRectF(59, 0, self.width() - 59, self.height()),
                          Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
                          self.text())
+
+
+class GestureCheck(QCheckBox):
+    """A compact, painted check box that follows the theme and keeps QCheckBox semantics."""
+
+    def __init__(self, accessible_name, parent=None):
+        super().__init__("", parent)
+        self.setAccessibleName(accessible_name)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setFixedSize(22, 22)
+
+    def sizeHint(self):
+        return QSize(22, 22)
+
+    def hitButton(self, point):
+        return self.rect().contains(point)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        box = QRectF(2.5, 2.5, 17, 17)
+        if self.isChecked():
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(color("accent")))
+            painter.drawRoundedRect(box, 5, 5)
+            pen = QPen(QColor(color("on_accent")), 2)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+            painter.setPen(pen)
+            painter.drawPolyline([QPoint(7, 11), QPoint(10, 14), QPoint(15, 8)])
+        else:
+            painter.setPen(QPen(QColor(color("strong_border")), 1.5))
+            painter.setBrush(QColor(color("surface")))
+            painter.drawRoundedRect(box, 5, 5)
+        if self.hasFocus() and self.window().testAttribute(Qt.WidgetAttribute.WA_KeyboardFocusChange):
+            painter.setPen(QPen(QColor(color("focus")), 2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(QRectF(0.5, 0.5, 21, 21), 7, 7)
+
+
+class FlowLayout(QLayout):
+    """Wrap items onto new lines, like words in a paragraph."""
+
+    def __init__(self, parent=None, spacing=8):
+        super().__init__(parent)
+        self.items = []
+        self.gap = spacing
+        self.setContentsMargins(0, 0, 0, 0)
+
+    def addItem(self, item):
+        self.items.append(item)
+
+    def count(self):
+        return len(self.items)
+
+    def itemAt(self, index):
+        return self.items[index] if 0 <= index < len(self.items) else None
+
+    def takeAt(self, index):
+        return self.items.pop(index) if 0 <= index < len(self.items) else None
+
+    def expandingDirections(self):
+        return Qt.Orientation(0)
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        return self.arrange(QRect(0, 0, width, 0), True)
+
+    def setGeometry(self, rect):
+        super().setGeometry(rect)
+        self.arrange(rect, False)
+
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def minimumSize(self):
+        size = QSize()
+        for item in self.items:
+            size = size.expandedTo(item.minimumSize())
+        return size
+
+    def arrange(self, rect, measure):
+        x, y, line = rect.x(), rect.y(), 0
+        for item in self.items:
+            if item.widget() is not None and item.widget().isHidden():
+                continue
+            hint = item.sizeHint()
+            if x + hint.width() > rect.right() + 1 and line:
+                x, y, line = rect.x(), y + line + self.gap, 0
+            if not measure:
+                item.setGeometry(QRect(QPoint(x, y), hint))
+            x += hint.width() + self.gap
+            line = max(line, hint.height())
+        return y + line - rect.y()
+
+
+class ChoiceGroup(QWidget):
+    """Visible, one-tap choices with the QComboBox calls the views already use."""
+    currentIndexChanged = Signal(int)
+
+    def __init__(self, parent=None, translate=False):
+        super().__init__(parent)
+        self.translate = translate
+        self.flow = FlowLayout(self)
+        self.buttons = []
+        self.values = []
+        self.index = -1
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+
+    def addItem(self, text, data=None):
+        button = KeyboardButton(text)
+        button.setObjectName("chip")
+        button.setCheckable(True)
+        button.setProperty("i18nUserText", not self.translate)
+        button.setCursor(Qt.CursorShape.PointingHandCursor)
+        if self.translate:
+            apply_widgets(button)
+        position = len(self.buttons)
+        button.clicked.connect(lambda _=False, i=position: self.choose(i))
+        self.buttons.append(button)
+        self.values.append(data)
+        self.flow.addWidget(button)
+        if self.index < 0:
+            self.setCurrentIndex(0)
+        self.updateGeometry()
+
+    def clear(self):
+        for button in self.buttons:
+            self.flow.removeWidget(button)
+            button.deleteLater()
+        self.buttons, self.values = [], []
+        if self.index != -1:
+            self.index = -1
+            self.currentIndexChanged.emit(-1)
+
+    def choose(self, index):
+        self.setCurrentIndex(index)
+        self.buttons[index].setChecked(True)
+
+    def count(self):
+        return len(self.buttons)
+
+    def currentIndex(self):
+        return self.index
+
+    def setCurrentIndex(self, index):
+        index = index if 0 <= index < len(self.buttons) else -1
+        for position, button in enumerate(self.buttons):
+            button.setChecked(position == index)
+        if index != self.index:
+            self.index = index
+            self.currentIndexChanged.emit(index)
+
+    def currentData(self):
+        return self.values[self.index] if self.index >= 0 else None
+
+    def currentText(self):
+        return self.buttons[self.index].text() if self.index >= 0 else ""
+
+    def itemData(self, index):
+        return self.values[index]
+
+    def itemText(self, index):
+        return self.buttons[index].text()
+
+    def setItemText(self, index, text):
+        self.buttons[index].setText(text)
+
+    def findData(self, data):
+        return self.values.index(data) if data in self.values else -1
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        return self.flow.heightForWidth(width)
+
+    def sizeHint(self):
+        width = sum(b.sizeHint().width() + 8 for b in self.buttons)
+        return QSize(min(width, 560), self.flow.heightForWidth(min(width, 560)) if self.buttons else 0)
+
+    def minimumSizeHint(self):
+        return QSize(0, 0)

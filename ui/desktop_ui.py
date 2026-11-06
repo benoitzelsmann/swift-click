@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
     QWidget,
     QFrame,
     QLabel,
-    QComboBox,
     QVBoxLayout,
     QHBoxLayout,
     QGridLayout,
@@ -24,12 +23,13 @@ from PySide6.QtWidgets import (
     QScrollArea,
 )
 from settings import ACTIONS, ASSIGNABLE, REPEATABLE, GESTURES, GESTURE_NAMES, action_id
-from ui_controls import KeyboardButton, ToggleSwitch, SelectionList
+from ui_controls import KeyboardButton, ToggleSwitch, SelectionList, GestureCheck
 from i18n import tr, language
 from ui_icons import action_icon,icon
 
 ACTION_GROUPS = {
-    "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right"),
+    "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right",
+                 "junction_left", "junction_straight", "junction_right"),
     "Media": ("volume_down", "volume_up", "volume_mute", "media_previous", "media_play_pause", "media_next", "seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
     "Routines": ("routine",),
@@ -56,10 +56,41 @@ def label(text, name=None, size=None):
     return widget
 
 
+BUTTON_ICONS = {
+    "Connect": "link", "Disconnect": "unlink", "Edit": "edit", "Delete": "trash", "Remove": "trash",
+    "Test": "play", "Show": "eye", "Save": "check", "Save window": "check", "Save directions": "check",
+    "Save action": "check", "Done": "check", "Confirm action": "check", "Refresh": "refresh",
+    "Refresh networks": "refresh", "Reset": "reset", "Reset timings": "reset", "Restore MyWhoosh link": "reset",
+    "Start session": "play", "Stop": "stop", "Open MyWhoosh": "open", "Open GitHub": "code",
+    "View release": "open", "Third-party licenses": "document", "Check for updates": "update",
+    "Send an email": "mail", "Report a problem": "bug", "Suggest an improvement": "idea",
+    "Copy technical details": "copy", "Export settings": "export", "Restore settings": "import",
+    "Add destination": "plus", "Add a position": "plus", "Create a position": "plus", "New action": "plus",
+    "Duplicate": "copy", "Detect": "detect", "Choose a window": "window", "Choose a position": "position",
+    "Capture position": "target", "Manage presses": "sliders", "Manage routines": "routine",
+    "Advanced routines": "routine", "Open settings": "settings", "Choose destination": "window",
+    "Back": "back", "Action types": "back",
+}
+DANGER_BUTTONS = {"Delete", "Remove"}
+
+
+def decorate(widget, text, primary=False):
+    """Give a button its symbol; primary buttons draw it in the accent ink."""
+    from ui_icons import icon as symbol
+    name = BUTTON_ICONS.get(text)
+    if name:
+        widget.setIcon(symbol(name, role="on_accent" if primary else "muted"))
+        widget.setIconSize(QSize(16, 16))
+    return widget
+
+
 def push(text, callback, primary=False):
     widget = KeyboardButton(text)
     if primary:
         widget.setObjectName("primary")
+    elif text in DANGER_BUTTONS:
+        widget.setObjectName("danger")
+    decorate(widget, text, primary)
     widget.setCursor(Qt.CursorShape.PointingHandCursor)
     widget.clicked.connect(callback)
     return widget
@@ -100,7 +131,7 @@ class AssignmentButton(KeyboardButton):
         self.setProperty("i18nUserTooltip", ident == "mouse_position")
         self.full_text = tr(ACTIONS[ident][1])
         if ident in ("whoosh_left","whoosh_right"):
-            self.full_text = tr("Left arrow" if ident == "whoosh_left" else "Right arrow")
+            self.full_text = tr("Move left" if ident == "whoosh_left" else "Move right")
         self.setIcon(action_icon(ident))
         self.setIconSize(QSize(16,16))
         if ident == "mouse_position":
@@ -128,6 +159,9 @@ class ControllerImage(QWidget):
         self.image = QPixmap(str(Path(__file__).with_name("assets") / source))
         self.setAccessibleName(accessible_name)
 
+    def sizeHint(self):
+        return QSize(170, 170)
+
     def paintEvent(self, event):
         if self.image.isNull():
             return
@@ -146,6 +180,7 @@ class ControllerEditor(QWidget):
         self.pressed = set()
         self.cards = {}
         self.gesture_rows = {}
+        self.enable_switches = {}
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.settings = QStackedWidget()
@@ -162,18 +197,23 @@ class ControllerEditor(QWidget):
         grid.setRowStretch(1, 1)
 
         self.photo = ControllerImage()
-        grid.addWidget(self.photo, 1, 2, 1, 2)
+        self.photo.setMinimumSize(110, 110)
+        self.photo.setMaximumSize(190, 190)
+        self.photo.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        grid.addWidget(self.photo, 1, 2, 1, 2, Qt.AlignmentFlag.AlignCenter)
         for key, row, column in (("y", 0, 2), ("z", 1, 0), ("a", 1, 4),
                                  ("b", 2, 1), ("plus", 2, 3)):
             frame = self.binding_card(key, bindings)
             grid.addWidget(frame, row, column, 1, 2, Qt.AlignmentFlag.AlignVCenter)
 
+        # Gesture checks appear only while managing presses, to keep the diagram compact.
+        self.manage = push("Manage presses", self.toggle_presses)
+        self.manage.setCheckable(True)
+        grid.addWidget(self.manage, 0, 0, 1, 2, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.restore = KeyboardButton("Reset")
         self.restore.setAccessibleName("Reset button assignments")
         grid.addWidget(self.restore, 0, 4, 1, 2,
                        Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
-        manage = push("Manage presses",self.manage_presses)
-        grid.addWidget(manage,0,0,1,2,Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
         choices, choice_box = card()
         self.choices_frame = choices
@@ -217,7 +257,8 @@ class ControllerEditor(QWidget):
         self.group_title = label("",size=16)
         actions_box.addWidget(self.group_title)
         self.action_grid = QGridLayout()
-        self.action_grid.setSpacing(14)
+        self.action_grid.setHorizontalSpacing(12)
+        self.action_grid.setVerticalSpacing(8)
         actions_box.addLayout(self.action_grid)
         self.pick_pages.addWidget(action_page)
         self.options = QButtonGroup(self)
@@ -232,7 +273,7 @@ class ControllerEditor(QWidget):
             option.setIcon(action_icon(action))
             option.setIconSize(QSize(18,18))
             if action in ("whoosh_left","whoosh_right"):
-                option.setText("Left arrow" if action == "whoosh_left" else "Right arrow")
+                option.setText("Move left" if action == "whoosh_left" else "Move right")
             option.setCheckable(True)
             option.setMinimumHeight(34)
             self.options.addButton(option)
@@ -301,33 +342,6 @@ class ControllerEditor(QWidget):
         choices.setMaximumWidth(640)
         picker_layout.addWidget(choices, alignment=Qt.AlignmentFlag.AlignCenter)
         self.settings.addWidget(picker)
-        presses, presses_box = card()
-        presses_box.setContentsMargins(18,12,18,12)
-        presses_box.setSpacing(6)
-        presses_box.addWidget(label("Manage presses",size=18))
-        flags_grid = QGridLayout()
-        flags_grid.setVerticalSpacing(2)
-        self.enable_switches = {}
-        for column, kind in enumerate(GESTURES,1):
-            flags_grid.addWidget(label(GESTURE_NAMES[kind],"muted"),0,column)
-        for row,key in enumerate(("y","b","a","z","plus"),1):
-            flags_grid.addWidget(label("+" if key == "plus" else key.upper()),row,0)
-            for column,kind in enumerate(GESTURES,1):
-                toggle = ToggleSwitch("")
-                toggle.setFixedHeight(28)
-                toggle.setAccessibleName(("+" if key == "plus" else key.upper()) + " · " + GESTURE_NAMES[kind])
-                toggle.clicked.connect(lambda checked,k=key,g=kind:self.enable_gesture(k,g,checked))
-                flags_grid.addWidget(toggle,row,column)
-                self.enable_switches[key,kind] = toggle
-        presses_box.addLayout(flags_grid)
-        presses_box.addWidget(push("Done",lambda:self.settings.setCurrentIndex(0)),alignment=Qt.AlignmentFlag.AlignRight)
-        presses_box.addStretch()
-        self.settings.addWidget(presses)
-
-    def manage_presses(self):
-        for (key,kind), toggle in self.enable_switches.items():
-            toggle.setChecked(self.window_owner.controller.config["enabled"][key][kind])
-        self.settings.setCurrentIndex(2)
 
     def enable_gesture(self, key, kind, checked):
         config = copy.deepcopy(self.window_owner.controller.config)
@@ -339,10 +353,24 @@ class ControllerEditor(QWidget):
             self.window_owner.show_error(str(exc))
         self.refresh_enabled()
 
+    def toggle_presses(self, checked=None):
+        self.managing = self.manage.isChecked() if checked is None else bool(checked)
+        self.manage.setChecked(self.managing)
+        self.manage.setText(tr("Done" if self.managing else "Manage presses"))
+        self.manage.setIcon(icon("check" if self.managing else "sliders"))
+        self.refresh_enabled()
+
     def refresh_enabled(self):
-        for (key,kind), widgets in self.gesture_rows.items():
-            for widget in widgets:
-                widget.setVisible(self.window_owner.controller.config["enabled"][key][kind])
+        managing = getattr(self, "managing", False)
+        for (key,kind), (caption, field) in self.gesture_rows.items():
+            enabled = self.window_owner.controller.config["enabled"][key][kind]
+            toggle = self.enable_switches[key,kind]
+            toggle.setChecked(enabled)
+            toggle.setVisible(managing)
+            # Outside management, disabled presses disappear; while managing, their row stays to re-enable it.
+            caption.setVisible(enabled or managing)
+            caption.setEnabled(enabled)
+            field.setVisible(enabled)
 
     def edit_action(self, field):
         self.field = field
@@ -375,14 +403,18 @@ class ControllerEditor(QWidget):
 
     def show_group(self, group):
         self.active_group = group
-        self.choices_frame.setMinimumWidth(620 if group == "Media" else 540)
+        if group == "Routines":
+            # Routines has a single action: go straight to choosing the routine.
+            self.show_routines()
+            return
+        self.choices_frame.setMinimumWidth(620 if group in ("Media", "MyWhoosh") else 540)
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
         self.group_title.setText(tr(group))
-        self.action_note.setText("Keep keyboard focus on the video player inside the selected browser window." if group == "Video" else
-                                 "MyWhoosh arrows are separate from gears. Route selection is not verified." if group == "MyWhoosh" else
-                                 "Left click uses the current pointer. A saved position moves, clicks once, then restores the pointer. Use a routine to activate a specific window first." if group == "Mouse" else
-                                 "A routine runs its saved actions in order, once per gesture. Configure it under Actions → Routines." if group == "Windows & routines" else "")
+        self.action_note.setText("Keep the video player focused in the browser." if group == "Video" else
+                                 "Move across the road, or pick the road at a junction." if group == "MyWhoosh" else
+                                 "Click here, or at a saved position." if group == "Mouse" else
+                                 "Runs its actions in order. Edit in Actions → Routines." if group == "Windows & routines" else "")
         self.action_note.setVisible(bool(self.action_note.text()))
         for cell in self.option_cells.values():
             self.action_grid.removeWidget(cell)
@@ -390,8 +422,16 @@ class ControllerEditor(QWidget):
         allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
         for index, action in enumerate(allowed):
             cell = self.option_cells[action]
-            columns = 3 if group == "Media" else 2
-            self.action_grid.addWidget(cell,index//columns,index%columns)
+            if group == "MyWhoosh":
+                # Gears, then lateral moves, then the three junction buttons on one line.
+                junction = action.startswith("junction_")
+                position = allowed.index(action) - (4 if junction else 0)
+                row, span = (2, 2) if junction else (position // 2, 3)
+                self.action_grid.addWidget(cell, row, (position % (3 if junction else 2)) * span, 1, span, Qt.AlignmentFlag.AlignTop)
+            else:
+                columns = 3 if group == "Media" else 2
+                # Top alignment keeps buttons on one line when only some show "Used by".
+                self.action_grid.addWidget(cell,index//columns,index%columns,Qt.AlignmentFlag.AlignTop)
             cell.show()
         self.pick_pages.setCurrentIndex(1)
         self.back_to_actions.show()
@@ -445,7 +485,7 @@ class ControllerEditor(QWidget):
             self.group_title.setText(tr(self.active_group))
         for action, used in self.usage_labels.items():
             used.setText(self.usage_text(action) if self.uses(action) else "")
-            used.setVisible(True)
+            used.setVisible(bool(used.text()))
         for group, button in self.category_buttons.items():
             allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
             button.setText(tr(group))
@@ -566,16 +606,21 @@ class ControllerEditor(QWidget):
         grid.addWidget(badge, 0, 0, 4, 1)
         for row,kind in enumerate(GESTURES):
             title = GESTURE_NAMES[kind]
+            toggle = GestureCheck(f"{name} · {title}")
+            toggle.clicked.connect(lambda checked, k=key, g=kind: self.enable_gesture(k, g, checked))
+            self.enable_switches[key, kind] = toggle
+            grid.addWidget(toggle, row, 1)
             caption = label("Hold" if kind == "hold" else title, "muted")
             caption.setStyleSheet("font-size:12px")
-            grid.addWidget(caption, row, 1)
+            grid.addWidget(caption, row, 2)
             field = AssignmentButton(f"{name} · {title}")
             field.gesture = kind
             field.clicked.connect(lambda checked=False, select=field: self.edit_action(select))
             bindings[key, kind] = field
-            grid.addWidget(field, row, 2)
+            field.setMinimumHeight(26)
+            grid.addWidget(field, row, 3)
             self.gesture_rows[key,kind] = (caption,field)
-        grid.setColumnStretch(2, 1)
+        grid.setColumnStretch(3, 1)
         self.cards[key] = frame
         return frame
 
@@ -597,11 +642,11 @@ def make_page(title, subtitle="", action=None):
     layout.setContentsMargins(32, 28, 32, 28)
     layout.setSpacing(24)
     heading = QHBoxLayout()
+    heading.setSpacing(14)
     from ui_icons import badge
     symbol = {"Mouse positions":"position","Windows":"windows","Routines":"routine"}.get(title)
     if symbol:
         heading.addWidget(badge(symbol))
-        heading.addSpacing(4)
     heading.addWidget(label(title, "title"), 1)
     if action is not None:
         heading.addWidget(action)
@@ -611,7 +656,9 @@ def make_page(title, subtitle="", action=None):
     return page, layout
 
 
-PAGE_DASHBOARD, PAGE_MYWHOOSH, PAGE_CONTROLLER, PAGE_MOUSE, PAGE_BUTTONS, PAGE_GENERAL, PAGE_CREDITS, PAGE_CONTACT = range(8)
+PAGE_DASHBOARD, PAGE_CONNECTIONS, _PAGE_RESERVED, PAGE_MOUSE, PAGE_BUTTONS, PAGE_GENERAL, PAGE_CREDITS, PAGE_CONTACT = range(8)
+# Controller and MyWhoosh share one Connections page.
+PAGE_MYWHOOSH = PAGE_CONTROLLER = PAGE_CONNECTIONS
 PAGE_WINDOWS, PAGE_ROUTINES = 8,9
 PAGE_SECTIONS = (0, 1, 1, 3, 2, 2, 2, 2, 3, 3)
 
@@ -637,36 +684,44 @@ def build_ui(w):
     header.setObjectName("header")
     header.setFixedHeight(64)
     nav = QHBoxLayout(header)
-    nav.setContentsMargins(32, 0, 32, 0)
+    nav.setContentsMargins(28, 0, 28, 0)
+    nav.setSpacing(10)
+    mark = ControllerImage("app-mark.png", "Swift Click")
+    mark.setFixedSize(30, 30)
+    nav.addWidget(mark)
     nav.addWidget(label("Swift Click", "brand"))
-    w.version_label = label(f"v{w.app_version}","muted")
+    w.version_label = label(f"v{w.app_version}","version")
     w.version_label.setWordWrap(False)
-    w.version_label.setStyleSheet("font-size:11px")
-    nav.addWidget(w.version_label)
+    nav.addWidget(w.version_label, 0, Qt.AlignmentFlag.AlignVCenter)
     nav.addStretch()
     w.pages = QStackedWidget()
     w.nav = [None]*4
     w.last_section_pages = {0: PAGE_DASHBOARD, 1: PAGE_CONTROLLER, 2: PAGE_BUTTONS, 3:PAGE_MOUSE}
+    group = QFrame()
+    group.setObjectName("navGroup")
+    group_row = QHBoxLayout(group)
+    group_row.setContentsMargins(4, 4, 4, 4)
+    group_row.setSpacing(2)
+    nav_icons = {0: "system", 1: "link", 3: "sparkle", 2: "settings"}
     for index, name in ((0,"Dashboard"),(1,"Connections"),(3,"Actions"),(2,"Settings")):
         item = push(name, lambda _=False, i=index: show_section(w, i))
-        item.setObjectName("nav")
+        item.setObjectName("settingsNav" if index == 2 else "nav")
         item.setCheckable(True)
-        nav.addWidget(item)
-        if index == 2:
-            item.setIcon(icon("settings"))
-            item.setIconSize(QSize(18,18))
+        item.setIcon(icon(nav_icons[index]))
+        item.setIconSize(QSize(16,16))
+        group_row.addWidget(item)
         w.nav[index] = item
+    nav.addWidget(group, 0, Qt.AlignmentFlag.AlignVCenter)
     outer.addWidget(header)
     w.subnav_frame = QFrame()
     w.subnav_frame.setObjectName("subnav")
     subnav = QHBoxLayout(w.subnav_frame)
     subnav.setContentsMargins(32, 6, 32, 6)
     w.subnav = {}
-    for target, name in ((PAGE_CONTROLLER, "Controller"), (PAGE_MYWHOOSH, "MyWhoosh"),
-                         (PAGE_BUTTONS, "Buttons"),
+    for target, name in ((PAGE_BUTTONS, "Buttons"),
                          (PAGE_GENERAL, "General"), (PAGE_CREDITS, "Credits"), (PAGE_CONTACT, "Contact"),
                          (PAGE_MOUSE, "Mouse positions"),
-                         (PAGE_WINDOWS,"Windows"),(PAGE_ROUTINES,"Routines")):
+                         (PAGE_WINDOWS,"Applications and media"),(PAGE_ROUTINES,"Routines")):
         item = push(name, lambda _=False, i=target: show_page(w, i))
         item.setObjectName("subnavButton")
         item.setCheckable(True)
@@ -678,10 +733,13 @@ def build_ui(w):
     w.recovery_notice.setObjectName("recoveryNotice")
     recovery_row = QHBoxLayout(w.recovery_notice)
     recovery_row.setContentsMargins(24, 12, 24, 12)
-    recovery_row.addWidget(label("Some settings could not be loaded. You can restore a backup in General settings."), 1)
+    recovery_row.addWidget(label("Some settings could not be loaded."), 1)
     recovery_row.addWidget(push("Open settings", lambda: show_page(w, PAGE_GENERAL)))
     w.recovery_notice.setVisible(bool(w.controller.config_error))
     outer.addWidget(w.recovery_notice)
+    w.destination_choice = push("Choose destination", w.choose_destination)
+    w.destination_choice.hide()
+    outer.addWidget(w.destination_choice)
     outer.addWidget(w.pages, 1)
 
     w.session_button = push("Start session", w.start_session, True)
@@ -718,67 +776,25 @@ def build_ui(w):
             divider.setFixedHeight(1)
             summary_box.addWidget(divider)
     box.addWidget(summary)
+    w.command_status = label("No command sent yet", "muted")
+    box.addWidget(w.command_status)
     box.addStretch()
     w.pages.addWidget(page)
 
-    page, box = make_page("MyWhoosh")
-    frame, items = card()
-    items.setContentsMargins(24, 24, 24, 24)
-    line = QHBoxLayout()
-    line.addWidget(logo(40))
-    line.addSpacing(14)
-    info = QVBoxLayout()
-    info.addWidget(label("Network connection", size=16))
-    w.game_status = label("Not connected", "muted")
-    info.addWidget(w.game_status)
-    line.addLayout(info, 1)
-    w.start_button = push("Connect", lambda: w.launch(w.start_link()), True)
-    w.stop_button = push("Disconnect", lambda: w.launch(w.stop_link()))
-    line.addWidget(w.start_button)
-    line.addWidget(w.stop_button)
-    items.addLayout(line)
-    box.addWidget(frame)
-    w.game_hint = label("", "muted")
-    w.game_hint.hide()
-    items.addWidget(w.game_hint)
-    w.game_guide = GuidePanel("mywhoosh", MYWHOOSH_STEPS)
-    box.addWidget(w.game_guide)
-    trouble = Disclosure("Connection trouble?")
-    trouble.body.addWidget(label(
-        "<b>Grey LAN:</b> check Direct Connect under Connectivity and allow Bonjour if MyWhoosh asks.<br>"
-        "<b>No prompt:</b> start the Swift Click connection, then click the OpenBikeControl handlebar in MyWhoosh.<br>"
-        "<b>Two devices:</b> use the same local network. If discovery fails, check the selected network and network permissions.<br>"
-        "<b>Connected but not shifting:</b> check the controller, assignments under Settings → Buttons and Virtual Shifting in MyWhoosh."
-    ))
-    w.network = QComboBox()
-    w.network.setAccessibleName("Local network used for MyWhoosh")
-    w.network_panel = Disclosure("Network and diagnostics")
-    w.network_panel.body.addWidget(label("Local network", "muted"))
-    w.network_panel.body.addWidget(w.network)
-    w.network_refresh = push("Refresh networks", w.load_networks)
-    w.network_panel.body.addWidget(w.network_refresh)
-    w.activity = QTextEdit()
-    w.activity.setReadOnly(True)
-    w.activity.setMaximumHeight(130)
-    w.activity.setAccessibleName("Connection diagnostics")
-    w.activity.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    w.network_panel.body.addWidget(w.activity)
-    w.network_panel.body.addWidget(trouble)
-    box.addWidget(w.network_panel)
-    box.addStretch()
-    w.pages.addWidget(scroll_page(page))
-
-    page, box = make_page("Controller")
+    page, box = make_page("Connections")
+    # Controller first: it is the device the rider holds.
     surface, content = card()
-    content.setContentsMargins(24, 24, 24, 24)
-    content.setSpacing(20)
-    box.addWidget(surface)
+    content.setContentsMargins(24, 22, 24, 22)
+    content.setSpacing(14)
     line = QHBoxLayout()
     line.setSpacing(12)
+    from ui_icons import badge
+    line.addWidget(badge("controller", 40))
+    line.addSpacing(2)
     info = QVBoxLayout()
-    info.setSpacing(4)
-    info.addWidget(label("Zwift Click V2 · Right", size=18))
-    w.ble_status = label("Not connected", size=15)
+    info.setSpacing(2)
+    info.addWidget(label("Zwift Click V2 · Right", size=16))
+    w.ble_status = label("Not connected", "muted")
     w.ble_status.setWordWrap(False)
     w.ble_details = label("", "muted")
     info.addWidget(w.ble_status)
@@ -793,13 +809,75 @@ def build_ui(w):
     line.addWidget(w.connect_button)
     line.addWidget(w.disconnect_button)
     content.addLayout(line)
+    footer = QHBoxLayout()
     w.received_buttons = label("Button input · waiting for a connection", "muted")
-    content.addWidget(w.received_buttons)
-    content.addWidget(w.maintenance, alignment=Qt.AlignmentFlag.AlignLeft)
-    w.controller_guide = GuidePanel("controller", CONTROLLER_STEPS, title="Help")
+    footer.addWidget(w.received_buttons, 1)
+    footer.addWidget(w.maintenance)
+    content.addLayout(footer)
+    box.addWidget(surface)
+
+    frame, items = card()
+    items.setContentsMargins(24, 22, 24, 22)
+    items.setSpacing(14)
+    line = QHBoxLayout()
+    line.setSpacing(12)
+    line.addWidget(logo(40))
+    line.addSpacing(2)
+    info = QVBoxLayout()
+    info.setSpacing(2)
+    info.addWidget(label("MyWhoosh", size=16))
+    w.game_status = label("Not connected", "muted")
+    info.addWidget(w.game_status)
+    w.route_status = label("", "muted")
+    w.route_status.hide()
+    info.addWidget(w.route_status)
+    line.addLayout(info, 1)
+    w.recover_button = push("Restore MyWhoosh link", lambda: w.launch(w.recover_link()))
+    w.recover_button.setObjectName("quiet")
+    w.recover_button.setToolTip("Restore MyWhoosh link")
+    w.start_button = push("Connect", lambda: w.launch(w.start_link()), True)
+    w.stop_button = push("Disconnect", lambda: w.launch(w.stop_link()))
+    line.addWidget(w.start_button)
+    line.addWidget(w.stop_button)
+    items.addLayout(line)
+    w.game_hint = label("", "muted")
+    w.game_hint.hide()
+    items.addWidget(w.game_hint)
+    items.addWidget(w.recover_button, alignment=Qt.AlignmentFlag.AlignLeft)
+    box.addWidget(frame)
+
+    box.addWidget(label("Guides", "eyebrow"))
+    w.controller_guide = GuidePanel("controller", CONTROLLER_STEPS, title="Controller guide")
     box.addWidget(w.controller_guide)
+    w.game_guide = GuidePanel("mywhoosh", MYWHOOSH_STEPS, title="MyWhoosh guide")
+    box.addWidget(w.game_guide)
+    trouble = Disclosure("Connection trouble?")
+    trouble.body.addWidget(label(
+        "<b>Grey LAN:</b> check Direct Connect under Connectivity and allow Bonjour if MyWhoosh asks.<br>"
+        "<b>No prompt:</b> start the Swift Click connection, then click the OpenBikeControl handlebar in MyWhoosh.<br>"
+        "<b>Two devices:</b> use the same local network. If discovery fails, check the selected network and network permissions.<br>"
+        "<b>Connected but not shifting:</b> check the controller, assignments under Settings → Buttons and Virtual Shifting in MyWhoosh."
+    ))
+    from ui_controls import ChoiceGroup
+    w.network = ChoiceGroup()
+    w.network.setAccessibleName("Local network used for MyWhoosh")
+    w.network_panel = Disclosure("Network and diagnostics")
+    w.network_panel.body.addWidget(label("Local network", "muted"))
+    w.network_panel.body.addWidget(w.network)
+    w.network_refresh = push("Refresh networks", w.load_networks)
+    w.network_panel.body.addWidget(w.network_refresh, alignment=Qt.AlignmentFlag.AlignLeft)
+    w.activity = QTextEdit()
+    w.activity.setReadOnly(True)
+    w.activity.setMaximumHeight(130)
+    w.activity.setAccessibleName("Connection diagnostics")
+    w.activity.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    w.network_panel.body.addWidget(w.activity)
+    w.network_panel.body.addWidget(trouble)
+    box.addWidget(w.network_panel)
     box.addStretch()
     w.pages.addWidget(scroll_page(page))
+    # The former controller page slot stays reserved so other page indices keep their meaning.
+    w.pages.addWidget(QWidget())
 
     from mouse_view import MousePage
     w.mouse_page = MousePage(w)
@@ -840,13 +918,17 @@ def show_page(w, index):
     w.pages.setCurrentIndex(index)
     for i, item in enumerate(w.nav):
         item.setChecked(i == section)
-    w.subnav_frame.setVisible(section != 0)
+    w.subnav_frame.setVisible(any(PAGE_SECTIONS[t] == section for t in w.subnav))
     for target, item in w.subnav.items():
         item.setVisible(PAGE_SECTIONS[target] == section)
         item.setChecked(target == index)
 
 
 def refresh_ui(w):
+    w.destination_choice.setVisible(w.controller.windows.pending_choice is not None)
+    w.recover_button.setEnabled(not w.recovering_link and not w.stopping and not w.closing)
+    w.command_status.setText(w.controller.last_command or "No command sent yet")
+    w.command_status.setStyleSheet("color:" + color("danger" if w.controller.last_command_error else "muted"))
     w.recovery_notice.setVisible(bool(w.controller.config_error))
     if w.routines_page.rendered_language != language():
         w.routines_page.reload()
@@ -868,7 +950,7 @@ def refresh_ui(w):
     w.network_refresh.setEnabled(not running)
     connected = bool(
         w.is_ready
-        and any(info["id"] == "mywhoosh" for info in w.shifter.app_info.values())
+        and bool(w.shifter.game_clients())
     )
     game = (
         "Connected"
@@ -880,6 +962,13 @@ def refresh_ui(w):
         else "Not connected"
     )
     w.game_status.setText(game)
+    if connected:
+        from controller import ROUTE_BUTTONS
+        keyboard = w.controller.config.get("navigation", {}).get("route_via", "network") == "keyboard"
+        network = not keyboard and all(w.shifter.supports(b) for b in ROUTE_BUTTONS.values())
+        w.route_status.setText("Directions sent through the network link" if network else
+                               "Directions sent as A / D keys: keep MyWhoosh in front")
+    w.route_status.setVisible(connected)
     w.game_hint.setText("In MyWhoosh, click the OpenBikeControl handlebar, then accept with YES.")
     w.game_hint.setVisible(w.is_ready and not connected)
     w.dashboard_states[0].setText(game)

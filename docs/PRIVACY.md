@@ -11,6 +11,10 @@ saves a small still image around that point and the window's identity with the
 position. The image stays in your local settings and is replaced on recapture.
 Remove personal screen content before sharing settings or backups.
 
+Junction actions read a small band of the MyWhoosh window only when you press the
+assigned gesture, to find the direction tiles and their arrows. The pixels are
+analysed in memory on your PC and discarded immediately; nothing is saved or sent.
+
 Selecting a window reads the titles and application paths of open windows. Only
 the saved application identities and titles are stored locally, along with
 named routine settings. Temporary window handles stay in memory for the session.

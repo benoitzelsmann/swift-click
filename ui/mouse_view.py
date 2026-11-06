@@ -123,7 +123,7 @@ class MousePage(QWidget):
         controls.setSpacing(8)
         self.capture = push("Capture position",lambda: window.launch(self.capture_point()),True)
         self.capture.setProperty("i18nUserText", True)
-        self.capture.setToolTip("Swift Click hides for 3 seconds. Move the pointer to the target; no click is sent.")
+        self.capture.setToolTip("Point at the target within 3 s. Nothing is clicked.")
         self.save_name = push("Save",self.commit_name,True)
         self.cancel_button = push("Cancel",self.cancel)
         controls.addWidget(self.cancel_button)

@@ -25,7 +25,12 @@ class RoutinesPage(QWidget):
         self.test_stop = None
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0,0,0,0)
-        page,body = make_page("Routines",action=push("New routine",self.new,True))
+        toolbar = QWidget()
+        tools = QHBoxLayout(toolbar)
+        tools.setContentsMargins(0,0,0,0)
+        tools.addWidget(push("Advanced routines", self.new))
+        tools.addWidget(push("New action", self.new_simple, True))
+        page,body = make_page("Routines",action=toolbar)
         outer.addWidget(page)
         surface,content = card()
         content.setContentsMargins(16,12,16,12)
@@ -89,10 +94,12 @@ class RoutinesPage(QWidget):
         self.flow.actionDropped.connect(self.add_action)
         diagram.addWidget(self.flow,1)
         order = QHBoxLayout()
-        self.up_button = push("↑",lambda:self.move(-1))
+        self.up_button = push("",lambda:self.move(-1))
         self.up_button.setAccessibleName("Move step up")
-        self.down_button = push("↓",lambda:self.move(1))
+        self.up_button.setIcon(icon("arrow_up"))
+        self.down_button = push("",lambda:self.move(1))
         self.down_button.setAccessibleName("Move step down")
+        self.down_button.setIcon(icon("arrow_down"))
         self.remove_step_button = push("Remove",self.remove_step)
         for widget in (self.up_button,self.down_button,self.remove_step_button):
             widget.setMinimumHeight(36)
@@ -179,6 +186,9 @@ class RoutinesPage(QWidget):
         footer.addWidget(self.save)
         edit.addLayout(footer)
         self.stack.addWidget(editor)
+        from simple_routines import SimpleRoutine
+        self.simple = SimpleRoutine(self)
+        self.stack.addWidget(self.simple)
         self.result = label("","muted")
         self.result.hide()
         content.addWidget(self.result)
@@ -236,6 +246,13 @@ class RoutinesPage(QWidget):
         self.choose_action()
         self.stack.setCurrentIndex(1)
         self.update_controls()
+
+    def new_simple(self):
+        if self.testing:
+            return
+        self.simple.load()
+        self.stack.setCurrentIndex(2)
+        self.owner.refresh()
 
     def edit(self):
         if not self.ident or self.testing:
@@ -314,8 +331,8 @@ class RoutinesPage(QWidget):
             self.seconds.blockSignals(False)
             self.update_wait_buttons()
         notes = {"close":"Normal close: the application's confirmation dialogs remain active.",
-                 "seek_back":"Keep keyboard focus on the video player inside the selected browser window.",
-                 "seek_forward":"Keep keyboard focus on the video player inside the selected browser window."}
+                 "seek_back":"Keep the video player focused in the browser.",
+                 "seek_forward":"Keep the video player focused in the browser."}
         self.step_note.setText(notes.get(action,""))
         self.step_note.setVisible(bool(self.step_note.text()))
         self.apply_step_button.setEnabled(not step_problem(step,self.config()))

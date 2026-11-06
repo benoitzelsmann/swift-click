@@ -7,12 +7,14 @@ import uuid
 from collections import Counter
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget,QButtonGroup
+from ui_controls import ChoiceGroup
 from desktop_ui import card,label,push,make_page
 from ui_controls import CatalogList,confirm_dialog
 from ui_icons import icon,application_icon,application_name
 from i18n import tr,language
 from settings import role_ref,routine_steps,routine_references
 from browser_tabs import list_tabs, matching_tabs, supported
+from destinations import SITES, website_url, site_host
 
 
 def tab_site(title):
@@ -43,8 +45,8 @@ class WindowsPage(QWidget):
         self.detect_button = push("Detect",lambda:owner.launch(self.detect()))
         self.detect_button.setIcon(icon("detect"))
         tools.addWidget(self.detect_button)
-        tools.addWidget(push("Add window",self.new,True))
-        page,body = make_page("Windows",action=toolbar)
+        tools.addWidget(push("Add destination",self.new,True))
+        page,body = make_page("Applications and media",action=toolbar)
         layout.addWidget(page)
         surface,box = card()
         box.setContentsMargins(16,12,16,12)
@@ -59,18 +61,19 @@ class WindowsPage(QWidget):
         self.saved.currentItemChanged.connect(self.selection)
         self.saved.itemDoubleClicked.connect(self.edit_item)
         from ui_controls import CatalogSearch
-        self.search = CatalogSearch(self.saved, "Search windows")
+        self.search = CatalogSearch(self.saved, "Search applications and media")
         content.addWidget(self.search)
         content.addWidget(self.saved,1)
-        self.empty = label("Add an open window or run detection.","muted")
+        self.empty = label("MyWhoosh, an app or a website.","muted")
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty.setMinimumHeight(60)
         content.addWidget(self.empty,1)
         controls = QHBoxLayout()
         self.edit_button = push("Edit",self.edit)
-        self.open_button = push("Open",lambda:owner.launch(self.open_selected()))
+        self.open_button = push("Show",lambda:owner.launch(self.open_selected()))
+        self.test_button = push("Test",lambda:owner.launch(self.open_selected(test=True)))
         self.delete_button = push("Delete",self.remove)
-        for button in (self.edit_button,self.open_button,self.delete_button):
+        for button in (self.open_button,self.test_button,self.edit_button,self.delete_button):
             controls.addWidget(button)
         controls.addStretch()
         content.addLayout(controls)
@@ -85,6 +88,29 @@ class WindowsPage(QWidget):
         self.name.setMaxLength(60)
         self.name.textChanged.connect(self.update_save)
         edit.addWidget(self.name)
+        self.kind = ChoiceGroup(translate=True)
+        self.kind.addItem("Application", "application")
+        self.kind.addItem("Website", "website")
+        self.kind.setAccessibleName("Destination type")
+        self.kind.currentIndexChanged.connect(self.update_kind)
+        edit.addWidget(self.kind)
+        self.site_fields = QWidget()
+        site_row = QVBoxLayout(self.site_fields)
+        site_row.setContentsMargins(0, 0, 0, 0)
+        self.preset = ChoiceGroup()
+        self.preset.addItem(tr("Custom website"), "")
+        for name, url in SITES.items():
+            self.preset.addItem(name, url)
+        self.url = QLineEdit()
+        self.url.setPlaceholderText("https://www.youtube.com/")
+        self.url.setAccessibleName("Website address")
+        self.url.setMaxLength(2048)
+        self.preset.currentIndexChanged.connect(self.choose_preset)
+        self.url.textChanged.connect(self.update_save)
+        site_row.addWidget(self.preset)
+        site_row.addWidget(self.url)
+        edit.addWidget(self.site_fields)
+        self.site_fields.hide()
         role_line = QHBoxLayout()
         role_line.addWidget(label("Default for","muted"))
         group = QButtonGroup(self)
@@ -152,6 +178,21 @@ class WindowsPage(QWidget):
         self.result.setText(tr(message))
         self.result.setVisible(bool(message))
 
+    def update_kind(self, *_):
+        if not hasattr(self, 'site_fields'):
+            return
+        self.site_fields.setVisible(self.kind.currentData() == 'website')
+        if hasattr(self, 'tab_panel'):
+            self.tab_panel.hide()
+        if hasattr(self, 'select_button'):
+            self.update_save()
+
+    def choose_preset(self, *_):
+        if self.preset.currentData():
+            self.url.setText(self.preset.currentData())
+            if not self.name.isModified():
+                self.name.setText(self.preset.currentText())
+
     def reload(self, selected=None):
         self.rendered_language = language()
         selected = selected or self.ident
@@ -171,6 +212,10 @@ class WindowsPage(QWidget):
                 state = tr("Not open")
             roles = [tr(title) for role,title in (("mywhoosh","MyWhoosh"),("video","Media")) if role_ref(cfg,role) == ident]
             detail = " · ".join([*roles,state])
+            if target.get('kind') == 'website':
+                detail = site_host(target['url']) + " · " + tr("Website checked when shown")
+            if target.get('needs_review'):
+                detail = tr("Needs review: choose a website or application")
             match = target.get("tab_match")
             if match:
                 detail += " · " + tr("Tab") + " · " + (tab_site(match) or match[:48])
@@ -197,7 +242,7 @@ class WindowsPage(QWidget):
 
     def selection(self, item, _previous=None):
         self.ident = item.data(Qt.ItemDataRole.UserRole) if item else None
-        for button in (self.edit_button,self.open_button,self.delete_button):
+        for button in (self.edit_button,self.open_button,self.test_button,self.delete_button):
             button.setEnabled(bool(self.ident) and not self.opening)
             button.setVisible(bool(self.owner.controller.config["windows"]))
 
@@ -215,6 +260,9 @@ class WindowsPage(QWidget):
         self.set_result("")
         self.role = None
         self.tab_match.clear()
+        self.kind.setCurrentIndex(0)
+        self.url.clear()
+        self.preset.setCurrentIndex(0)
         self.roles[None].setChecked(True)
         self.populate()
         self.stack.setCurrentIndex(1)
@@ -226,6 +274,9 @@ class WindowsPage(QWidget):
         self.editing = self.ident
         self.set_result("")
         target = self.owner.controller.config["windows"][self.ident]
+        self.kind.setCurrentIndex(1 if target.get('kind') in ('website', 'legacy') else 0)
+        self.url.setText(target.get('url', ''))
+        self.preset.setCurrentIndex(0)
         self.name.setText(target["name"])
         self.role = next((r for r in ("mywhoosh","video") if role_ref(self.owner.controller.config,r) == self.ident),None)
         self.roles[self.role].setChecked(True)
@@ -254,6 +305,16 @@ class WindowsPage(QWidget):
 
     def populate(self):
         self.available = self.owner.controller.windows.native.list()
+        # Browser applications can be configured even when no window is open.
+        import os
+        from pathlib import Path
+        from window_actions import Window
+        for base, relative in ((os.environ.get('ProgramFiles(x86)', ''), 'Microsoft/Edge/Application/msedge.exe'),
+                               (os.environ.get('ProgramFiles', ''), 'Google/Chrome/Application/chrome.exe'),
+                               (os.environ.get('LOCALAPPDATA', ''), 'Google/Chrome/Application/chrome.exe')):
+            path = Path(base) / relative
+            if path.is_file() and not any(w.path.casefold() == str(path).casefold() for w in self.available):
+                self.available.append(Window(0, str(path), application_name(str(path))))
         self.list.clear()
         names = [tr(application_name(window.path)) for window in self.available]
         totals = Counter(names)
@@ -304,7 +365,7 @@ class WindowsPage(QWidget):
                 del self.tab_cache[key]
         for window in windows:
             key = (window.handle, window.path)
-            if supported(window.path) and key not in self.tab_cache and key not in self.tab_requests:
+            if window.handle and supported(window.path) and key not in self.tab_cache and key not in self.tab_requests:
                 self.tab_requests.add(key)
                 self.owner.launch(self.read_tabs(key))
 
@@ -329,7 +390,7 @@ class WindowsPage(QWidget):
         window = self.available[index] if index >= 0 else None
         saved = self.owner.controller.config["windows"].get(self.editing, {})
         path = window.path if window else saved.get("path", "")
-        self.tab_panel.setVisible(supported(path))
+        self.tab_panel.hide()  # Site identity is edited by address, never by a changing video title.
         self.tab_choices.clear()
         if not supported(path):
             return
@@ -383,9 +444,18 @@ class WindowsPage(QWidget):
         self.tab_match.show()
         if not self.editing and not self.name.isModified():
             self.name.setText(item.text()[:60])
+        # A tab of a known service becomes a website destination: found by address later,
+        # so a new video title or a restarted browser does not break it.
+        url = SITES.get(tab_site(title))
+        if url:
+            self.kind.setCurrentIndex(self.kind.findData('website'))
+            self.preset.setCurrentIndex(max(0, self.preset.findData(url)))
+            self.url.setText(url)
+            self.update_save()
 
     def update_save(self, *_):
-        self.select_button.setEnabled(bool(self.name.text().strip()) and (self.list.currentRow() >= 0 or self.editing is not None))
+        self.select_button.setEnabled(bool(self.name.text().strip()) and (self.list.currentRow() >= 0 or self.editing is not None)
+                                      and (self.kind.currentData() != 'website' or bool(self.url.text().strip())))
 
     def select(self):
         cfg = copy.deepcopy(self.owner.controller.config)
@@ -405,8 +475,15 @@ class WindowsPage(QWidget):
         else:
             target["name"] = self.name.text().strip()
         target.pop('tab_match',None)
-        if supported(target["path"]) and self.tab_match.text().strip():
-            target['tab_match']=self.tab_match.text().strip()
+        target.pop('needs_review', None)
+        target.pop('url', None)
+        target['kind'] = self.kind.currentData()
+        if target['kind'] == 'website':
+            try:
+                target['url'] = website_url(self.url.text())
+            except ValueError as exc:
+                self.set_result(str(exc))
+                return
         cfg["windows"][ident] = target
         for role,ref in list(cfg["window_roles"].items()):
             if ref == ident:
@@ -415,7 +492,7 @@ class WindowsPage(QWidget):
             cfg["window_roles"][self.role] = ident
         try:
             self.owner.controller.save(cfg)
-            if window:
+            if window and window.handle:
                 self.owner.controller.windows.select(ident,window)
             self.ident = ident
             self.finish()
@@ -466,11 +543,11 @@ class WindowsPage(QWidget):
             self.detect_button.setEnabled(True)
             self.detect_button.setText("Detect")
 
-    async def open_selected(self):
+    async def open_selected(self, *, test=False):
         if self.opening or not self.ident:
             return
         cfg = copy.deepcopy(self.owner.controller.config)
-        cfg["routines"]["preview"] = {"name":"Open","return":False,"steps":[{"action":"open","window_id":self.ident}]}
+        cfg["routines"]["preview"] = {"name":"Show","return":test,"steps":[{"action":"activate" if test else "open","window_id":self.ident}]}
         self.opening = True
         self.selection(self.saved.currentItem())
         self.open_button.setText("Opening…")
@@ -481,7 +558,7 @@ class WindowsPage(QWidget):
             self.set_result(str(exc))
         finally:
             self.opening = False
-            self.open_button.setText("Open")
+            self.open_button.setText("Show")
             self.reload(self.ident)
 
     def remove(self):

@@ -1,20 +1,21 @@
-# Swift Click 3.0.0 compatibility
+# Swift Click 3.1.0 compatibility
 
-3.0.0 is a Windows desktop release with an unsigned installer. The following separates implemented
+3.1.0 is a Windows desktop release with an unsigned installer. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
 | --- | --- |
-| Operating system | Windows 11 x64, Intel or AMD |
+| Operating system | Windows 10 22H2 or Windows 11, x64, Intel or AMD |
 | Controller | Zwift Click V2 right, Y/A/B/Z/+, tested firmware 1.2.0 |
 | Other controllers | Left Click V2, Click V1, Play and Ride are not supported |
 | MyWhoosh gears | OpenBikeControl network connection; independent of foreground focus |
 | Media | Windows volume, mute/unmute, play/pause and previous/next track |
 | Video | Complete left/right key presses to the selected Media window; player needs keyboard focus |
-| Windows | Named targets, MyWhoosh/media discovery and verified foreground activation |
-| Browser tabs | Existing tabs in Microsoft Edge and Google Chrome, matched by title |
-| Routines | Ordered open, activate, minimize, normal close, switch, click, seek and wait steps |
-| MyWhoosh arrows | Separate from gears; held keys released on focus loss; junction behaviour unverified |
+| Applications and media | Named applications and websites (YouTube, Netflix, Spotify or custom); MyWhoosh is never minimized or moved |
+| Websites | Existing Edge and Chrome tabs identified by their address, not the video title; several matches ask for a choice |
+| Routines | Simple actions plus ordered open, activate, minimize, normal close, switch, click, seek and wait steps; routines cannot close or minimize MyWhoosh |
+| MyWhoosh moves | OpenBikeControl Steer Left/Right when MyWhoosh announces them, otherwise A / D keys with MyWhoosh in front |
+| MyWhoosh junctions | Reads the on-screen direction tiles at press time and clicks the matching arrow inside MyWhoosh; tested with MyWhoosh 5.7.0 at 1920 × 1080 |
 | Mouse | Named physical coordinates, local previews and associated windows; targeted routine clicks verify the window |
 | macOS / Windows ARM | Not available or qualified |
 | Browser extension | Not used |

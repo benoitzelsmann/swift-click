@@ -2,7 +2,7 @@
 
 ## Supported target
 
-Windows 11 x64 (build 22000 or later), Intel or AMD, and the right-hand Zwift Click
+Windows 10 22H2 (build 19045) or Windows 11, x64, Intel or AMD, and the right-hand Zwift Click
 V2 controller. The installer bundles its runtime. Installation is per Windows user
 and requires no administrator privileges. Bluetooth and the MyWhoosh local network
 connection must be available to that user.

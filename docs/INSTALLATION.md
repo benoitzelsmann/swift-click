@@ -1,7 +1,7 @@
 # Installing Swift Click
 
 The SwiftClick-<version>-Setup.exe file includes the app, Python and its libraries.
-It installs offline on Windows 11 x64 with an Intel or AMD processor. Bluetooth is
+It installs offline on Windows 10 22H2 or Windows 11 x64 with an Intel or AMD processor. Bluetooth is
 required for the controller. This package does not qualify macOS or Windows ARM.
 
 ## Installation

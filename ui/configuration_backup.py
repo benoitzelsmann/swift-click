@@ -90,6 +90,8 @@ def choose_import(window):
         window.windows_page.reload()
         window.routines_page.reload()
         window.timing_settings.load(configuration["timings"])
+        window.route_duration.setValue(configuration["navigation"]["press_ms"])
+        window.route_via.setCurrentIndex(max(0, window.route_via.findData(configuration["navigation"]["route_via"])))
         window.refresh()
         show_message(window, "Settings restored", tr("Your previous settings were saved to:") + "\n" + str(recovery))
     except (OSError, ValueError) as exc:

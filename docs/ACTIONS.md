@@ -76,15 +76,16 @@ switch windows manually, the routine stops instead of pulling focus back.
 
 ## Keep the controller simple
 
-Enable only the gestures you need in **Manage presses**. Simple reacts on release.
+Choose **Manage presses** on the Buttons page: a check box appears beside each gesture.
+Enable only the gestures you need, then choose **Done**. Simple reacts on release.
 The following durations are defaults; edit them under **Settings → General**.
 Double adds up to 300 ms of waiting to Simple. Long reacts on release after 650 ms.
 Continuous hold begins at 1.5 seconds and excludes the other gestures. Without
 Long, an earlier release remains Simple; without Long or Hold, a prolonged press
 also remains Simple. Disabled gestures retain their assignments.
 
-Continuous hold allows only volume, video arrows and MyWhoosh arrows. Volume and
-video repeat; MyWhoosh arrows remain down until release. Gears use OpenBikeControl
+Continuous hold allows only volume, video seeking and MyWhoosh moves. Volume and
+video repeat; MyWhoosh moves stay held until release. Gears use OpenBikeControl
 and do not depend on the foreground window.
 
 Media also includes **Mute / unmute**, which toggles Windows output mute once.

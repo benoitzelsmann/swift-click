@@ -1,156 +1,81 @@
 # Swift Click
 
-Use a **Zwift Click V2 right controller with MyWhoosh on Windows**, with media controls and named mouse targets.
+Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**: change gears, move across the road, pick your road at junctions, and control music, videos and windows without leaving the saddle.
 
-[Download 3.0.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v3.0.0/SwiftClick-3.0.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v3.0.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md) · [Deployment](docs/DEPLOYMENT.md)
+[Download 3.1.0 for Windows](https://github.com/benoitzelsmann/swift-click/releases/download/v3.1.0/SwiftClick-3.1.0-Setup.exe) · [Release notes](https://github.com/benoitzelsmann/swift-click/releases/tag/v3.1.0) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
-<img src="ui/assets/click-right.png" alt="Zwift Click V2 right controller" width="170">
+![Visual routine editor: open YouTube, click Skip, return to MyWhoosh](docs/images/routine-editor.png)
 
-## Why Swift Click exists
+## Why Swift Click
 
-Many smart trainers are sold with Zwift Cog and Click hardware, including [Zwift Ready bundles](https://support.zwift.com/en_us/zwift-ready-and-zwift-cog-compatible-trainers-r1x1sNas0). You may already own the controller but prefer not to pay for a recurring Zwift subscription. That was my starting point: I wanted to use the hardware I had bought without another subscription just to change gears.
+Many smart trainers ship with Zwift Cog and Click hardware. [MyWhoosh is free to ride](https://www.mywhoosh.com/docs/is-there-a-membership-fee-to-use-mywhoosh/), but the Click V2 does not pair with it for shifting. Swift Click bridges the two: it reads the controller over Bluetooth and talks to MyWhoosh through the OpenBikeControl protocol. No account, subscription, daily limit or telemetry.
 
-[MyWhoosh is free to ride](https://www.mywhoosh.com/docs/is-there-a-membership-fee-to-use-mywhoosh/), but my Click V2 did not pair directly with it for shifting. Swift Click fills that gap: it receives presses from the right-hand controller over Bluetooth and sends gear commands to MyWhoosh through OpenBikeControl. The same buttons can control music or a video while riding.
+**Supported controller:** the right-hand Zwift Click V2 (buttons **Y, A, B, Z, +**). The left-hand controller, Click V1, Zwift Play and Zwift Ride are not supported.
 
-**Only the right-hand Zwift Click V2 is supported** — the controller marked **Y, A, B, Z and +**. The left-hand arrow controller, the original Click V1, Zwift Play and Zwift Ride controls are not supported by this release.
+## What's new in 3.1
 
-## How this compares with BikeControl
+- **Junctions.** Pick *left*, *straight* or *right* when MyWhoosh shows its direction buttons. Swift Click reads the arrows on screen at the moment you press, so it works with two or three buttons, wherever they appear.
+- **Move left / right.** Lateral moves on the road use OpenBikeControl *Steer* commands, so MyWhoosh doesn't need to be in front. A / D keys remain as a fallback.
+- **One Connections page.** Controller and MyWhoosh side by side, guides underneath.
+- **Faster button setup.** *Manage presses* shows a check box next to each gesture, right on the diagram.
+- **A calmer interface.** New blue theme in light and dark, clear icons on every button, one-tap choices instead of drop-down menus, shorter texts.
+- **A link that holds.** Keep-alive on both sides, automatic recovery after sleep or a network change, and stale commands discarded instead of shifting late.
 
-BikeControl is an established alternative and a useful reference for the OpenBikeControl protocol. Swift Click focuses on this particular right-controller-to-MyWhoosh setup and local Windows controls.
+## Features
 
-According to [BikeControl's official pricing page](https://bikecontrol.app/pricing/), checked on **5 November 2026**:
+| | |
+|---|---|
+| **MyWhoosh** | Gear up / down, move left / right, junction left / straight / right |
+| **Media** | Volume, mute, play / pause, previous / next track, video seek |
+| **Windows** | Show, switch, minimize or close saved apps and browser tabs |
+| **Clicks** | Click at the pointer or at a saved screen position, then restore the pointer |
+| **Routines** | Chain actions visually: show a video, click *Skip*, return to MyWhoosh |
+| **Gestures** | Simple, Double, Long and Continuous hold on each of the five buttons |
+| **Comfort** | Light, dark or system theme · English and French · settings backup |
 
-- **Base** is a one-time purchase of about **US$4.99 per platform**, with unlimited button actions, including shifting handled by the training app.
-- **Pro** is about **US$2.50/month**, or **US$2.25/month billed annually**, and adds BikeControl's own virtual shifting and other features. Store prices vary by region.
-- After its initial trial, the unpurchased app allows **15 button actions per day**. The separate Pro virtual-shifting trial allows **20 minutes per day**.
+## Junctions
 
-Base already removes the daily button-action limit. Pro is not required simply to exceed 20 gear changes per day. Swift Click has no purchase, subscription or daily shift counter.
+Assign **Junction left**, **Junction straight** or **Junction right** under **Settings → Buttons → MyWhoosh**. When MyWhoosh shows its direction tiles, press the gesture: Swift Click finds the tile with the matching arrow and clicks it inside MyWhoosh, then puts the pointer back. If that direction isn't offered, nothing is clicked and the app tells you.
 
-## What it does
+MyWhoosh offers no keyboard shortcut or network command for junctions, so Swift Click looks at a small band of the MyWhoosh window, only when you press, entirely on your PC. Nothing is saved or sent.
 
-- Change gears in MyWhoosh using the OpenBikeControl network protocol.
-- Enable Simple, Double, Long and Continuous hold independently on each button.
-- Control Windows volume, mute/unmute, play/pause and previous/next tracks.
-- Target a selected video window for left/right navigation, or MyWhoosh for its own arrow keys.
-- Save named windows or specific Edge and Chrome tabs, with automatic MyWhoosh/media detection.
-- Build visual routines with open, activate, minimize, close, switch, click, seek and wait actions.
-- Click at the current pointer position or save a point with a local preview and its associated window.
-- Choose Light, Dark or System under **Settings → General → Appearance**. Swift Click remembers your choice.
-- Switch between English and French with the flag buttons under **Settings → General**, without restarting connections.
-- Export and restore your settings with an automatic recovery copy before restoration.
-- Search saved windows, positions and routines, and duplicate a routine to create a variation.
-- Check for a new version under **Settings → Credits** when you choose.
-- Copy technical details for a support request under **Settings → Contact**, without sharing your saved targets or addresses.
-- View credits, third-party license notices and feedback links under **Settings → Credits / Contact**.
+## Routines
 
-No browser extension, Swift Click account or telemetry is required. Video controls activate the selected window and require keyboard focus inside its player. If Windows refuses activation, no key is sent. Named clicks require the target window to remain in the saved position.
+Prepare **Mouse positions** and **Applications and media** under **Actions**, then build a routine: drag steps into the sequence, pick their targets, confirm. Assign it to a gesture under **Settings → Buttons → Routines** — the routine list opens directly.
 
-![Swift Click English interface with the five button assignments around the right controller](docs/images/controller-buttons.png)
+Example, *Skip ad and return*: show YouTube, click the saved *Skip* position, return to MyWhoosh.
 
-The screenshots use illustrative examples. New installations start with no actions assigned.
+![Routine catalogue](docs/images/routines.png)
 
-<img src="docs/images/dark-appearance.png" alt="Swift Click in dark mode, with appearance and language controls" width="660">
+## Applications and media
 
-## Visual routines
+Save MyWhoosh, an application or a website (YouTube, Netflix, Deezer or your own address) under **Actions → Applications and media**. Websites are found by address, so a new video title doesn't break them. Swift Click never minimizes or moves MyWhoosh.
 
-Prepare **Mouse positions** and **Windows** under Actions, then open **Routines**.
-Drag an action into the diagram, select its saved targets and choose **Confirm action**.
-Reorder the numbered cards by dragging or with the arrow buttons. Save the routine
-and assign **Run routine** to a Simple, Double or Long press under Settings → Buttons.
+![Applications and media](docs/images/windows.png)
 
-<img src="docs/images/routine-editor.png" alt="Visual routine editor with a video-window activation, a saved click and automatic return enabled" width="660">
+[Read the windows, clicks and routines guide](docs/ACTIONS.md).
 
-To skip a YouTube ad and return to MyWhoosh:
+## Install
 
-1. With YouTube's **Skip** button visible, save its location under **Actions →
-   Mouse positions** as **Skip ad**. Save the YouTube tab under **Actions → Windows**.
-2. Create **Skip ad and return**. Add **Activate → YouTube**, then **Click
-   position → Skip ad**. Select **YouTube** as the click's window and enable
-   **Return to starting window**.
-3. Assign **Run routine → Skip ad and return** to a controller gesture. With
-   MyWhoosh in front and the **Skip** button still visible at the saved point,
-   press the gesture to click it and return to the ride.
+1. Download the file ending in **Setup.exe** from [Releases](https://github.com/benoitzelsmann/swift-click/releases) and run it. Python is included.
+2. In **Connections**, wake the controller and choose **Connect**.
+3. Choose **Connect** for MyWhoosh, then in MyWhoosh click the **OpenBikeControl** handlebar icon and accept with **YES**.
+4. Assign your buttons under **Settings → Buttons**.
 
-The click uses the saved screen coordinates. Capture the point again if you move
-the browser or change the player layout.
+Requires Windows 10 22H2 or Windows 11 (x64) with Bluetooth. The installer is unsigned: Windows may warn before running it. Check the SHA-256 checksum in the release notes.
 
-For **Switch MyWhoosh and YouTube**, add one **Switch** step and select MyWhoosh
-and the saved YouTube tab. The controller uses the active window to choose where
-to go. In Swift Click, successive clicks on **Test** continue from the last
-activated target and display the destination. A final Switch leaves that target
-in front. Double-click a saved routine to edit it.
+## Good to know
 
-Windows actions can make a button perform a complete sequence: display the video
-window, click a saved point, then return to MyWhoosh. Open, activate, minimize and
-normal close steps work with named windows; Switch alternates between two targets.
-Clicks remain tied to physical screen positions, so reposition a target when its
-window moves. Windows activation is verified before targeted input is sent.
+- **Gesture timings** (defaults): Simple on release, Double within 300 ms, Long from 650 ms, Continuous hold from 1.5 s. Editable under **Settings → General**.
+- **Keep awake** is an optional, experimental mode for controller firmware 1.2.0. It uses the firmware-update mechanism and asks for your consent first.
+- **Targeted input is verified.** Keys and clicks are sent only when the expected window is in front and the point isn't covered.
 
-<img src="docs/images/routines.png" alt="Routine catalogue with one selected example routine" width="660">
+## Compared with BikeControl
 
-[Read the full windows, clicks and routines guide](docs/ACTIONS.md).
+[BikeControl](https://bikecontrol.app/) supports many controllers and apps and is a useful OpenBikeControl reference. Swift Click focuses on one setup — right Click V2, MyWhoosh, Windows — and is free with no daily action limit. See [BikeControl's pricing](https://bikecontrol.app/pricing/) for its current plans.
 
-## Media and saved targets
+## This repository
 
-The **Media** category groups volume, mute/unmute, playback, tracks and video seeking.
-MyWhoosh and Windows icons identify where commands go. Continuous hold supports
-repeated volume/video commands; mute is a single toggle per gesture.
+Public distribution and issue tracking. `ui/` holds the PySide6 interface sources; the Bluetooth engine and system controls are private, so these files don't run on their own — use the installer. Publishing the UI sources doesn't grant an open-source license.
 
-<img src="docs/images/media-actions.png" alt="Unified media action picker with mute selected" width="660">
-
-<img src="docs/images/windows.png" alt="Named application windows with their default roles" width="660">
-
-Select Edge or Chrome in **Actions → Windows** to see its open tabs. Save the
-whole window or pick an existing tab such as YouTube. Tabs are matched by title.
-
-<img src="docs/images/browser-tabs.png" alt="Short window names beside the automatically detected browser tabs" width="660">
-
-In **Mouse positions**, double-click a point to see its capture and associated
-window. Choosing that point in a routine fills the window when it is known.
-
-<img src="docs/images/position-editor.png" alt="Mouse position editor with a local preview and its associated window" width="660">
-
-## Language and gesture settings
-
-Settings is at the right of the navigation bar. Choose English or French under
-**General**, where you can edit the double-press window, Long/Hold thresholds and
-volume/video repeat intervals. Choose **Save** to apply them, or **Reset timings**
-to restore the default values. Each press keeps the timings captured when it began.
-**Manage presses** on the
-Buttons page enables or disables each gesture without discarding its assignment.
-
-<img src="docs/images/languages.png" alt="Language selection and five editable gesture timing settings" width="660">
-
-## Download and install
-
-Open **Releases** and download the file ending in **Setup.exe**, not GitHub's automatic source ZIP. Run the installer, then open Swift Click from the Start menu. Python is included. Windows 11 x64 and Bluetooth are required.
-
-The 3.0.0 installer is unsigned. Windows security settings may warn about or block it. Check the release notes and SHA-256 checksum. Full ride endurance testing and installation on clean PCs remain in progress. macOS is not available yet.
-
-Upgrading from 1.0 preserves mappings, named positions, language and connections, with a configuration backup. Double starts disabled. An optional update check opens the release page. Downloads and installation remain manual; there is no background updater.
-
-## Controller setup
-
-Wake the right controller and connect it in Swift Click. Start the MyWhoosh connection and accept it in MyWhoosh. The app includes illustrated connection guides. If MyWhoosh displays **Dircon Service Unavailable**, choose **YES**, complete installation, then **close and restart MyWhoosh** before connecting. Configure assignments in Settings → Buttons. Actions groups Mouse positions, Windows and Routines, in preparation order.
-
-The Dashboard includes Open MyWhoosh alongside its connection states. It opens the installed game or brings its existing window forward; it does not establish the network connection. Routine results stay in Actions. The routine catalogue opens a separate editor for creation and modification, using prepared windows and positions. App icons help identify the selected windows.
-
-Under **Settings → Buttons → Manage presses**, enable the gestures you need. With default timings, Simple triggers on release; when Double is enabled it waits up to 300 ms for a second brief press. Long triggers on release from 650 ms. Continuous hold starts at 1.5 seconds, repeating volume every 150 ms or video arrows every 400 ms. MyWhoosh arrows remain down until release. Gestures are exclusive, and disabled gestures keep their saved actions.
-
-Under **Actions → Windows**, save named windows and choose the MyWhoosh and Media defaults. Detection reads Windows media sessions and preserves existing selections. Window handles are not persisted; after restart, ambiguous targets require selection again. **Actions → Routines** builds a visual top-to-bottom sequence from these windows and saved positions. See the [clicks and routines guide](docs/ACTIONS.md) for examples and behaviour. Targeted clicks verify that the point is inside the selected window and not covered. Keyboard arrow behaviour for MyWhoosh junctions has not been verified; no route-selection guarantee is made.
-
-An optional experimental keep-awake mode is limited to the tested right controller firmware 1.2.0. It uses the controller's firmware-update mechanism and can erase its secondary firmware slot. Activation requires the explanation and consent shown in the app. Long-session validation is still pending.
-
-## What is in this repository
-
-This is the public distribution and issue-tracking repository. The `ui/` directory contains the Python/PySide6 interface sources. The Bluetooth engine, system-control implementation and build history are kept private.
-
-These UI modules depend on the private application services and cannot run as a standalone application. Use the Windows installer to run Swift Click. Publication of the UI files does not grant an open-source license. Third-party libraries and visual assets retain their respective rights and licenses. Dependency notices are included with the installed app.
-
-Swift Click is an independent project maintained by [benoitzelsmann](https://github.com/benoitzelsmann). It is not affiliated with or endorsed by Zwift or MyWhoosh. Product names and logos belong to their respective owners.
-
-## Feedback and credits
-
-Use [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) for bug reports and suggestions, or open **Settings → Contact** in the app. A dedicated email address will be added when available. Please remove personal details from screenshots and logs.
-
-**Settings → Credits** lists the author, protocol references and main libraries, with access to the third-party notices included in the installer. The interface language is saved locally and can be changed between English and French at any time.
+Swift Click is an independent project by [benoitzelsmann](https://github.com/benoitzelsmann), not affiliated with Zwift or MyWhoosh. Product names and logos belong to their owners. Feedback: [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) or **Settings → Contact** in the app.
