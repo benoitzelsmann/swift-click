@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Swift Click — Use your Zwift Click with MyWhoosh on Windows (free)</title>
-<meta name="description" content="Swift Click is a free Windows app that lets you use a Zwift Click V2 controller with MyWhoosh: virtual shifting, steering, junction choices, media controls and one-press routines. No account, no subscription.">
+<meta name="description" content="Swift Click is a free Windows app that lets you use a Zwift Click V2 controller with MyWhoosh: virtual shifting, steering, junction choices, ERG intensity, media controls and one-press routines. No account, no subscription.">
 <link rel="canonical" href="https://benoitzelsmann.github.io/swift-click/">
 <meta name="google-site-verification" content="0iAB3sMhUX_ZPPivFHxk-Fyz12uVrb-d21KKqjJ2uBg">
 <meta name="msvalidate.01" content="01E8C645C51907858967F6520EFC6310">
@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#2563eb">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Swift Click — Zwift Click for MyWhoosh on Windows">
-<meta property="og:description" content="Free Windows app: shift gears, steer, choose junctions and control your music from a Zwift Click V2 while riding MyWhoosh.">
+<meta property="og:description" content="Free Windows app: shift gears, steer, choose junctions, set ERG intensity and control your music from a Zwift Click V2 while riding MyWhoosh.">
 <meta property="og:url" content="https://benoitzelsmann.github.io/swift-click/">
 <meta property="og:image" content="https://benoitzelsmann.github.io/swift-click/images/og.png">
 <meta property="og:image:width" content="1640">
@@ -26,10 +26,10 @@
   "name": "Swift Click",
   "applicationCategory": "SportsApplication",
   "operatingSystem": "Windows 10 22H2, Windows 11 (x64)",
-  "description": "Free Windows app that connects a Zwift Click V2 controller to MyWhoosh for virtual shifting, steering, junction choices, media controls and routines.",
+  "description": "Free Windows app that connects a Zwift Click V2 controller to MyWhoosh for virtual shifting, steering, junction choices, ERG intensity, media controls and routines.",
   "url": "https://benoitzelsmann.github.io/swift-click/",
   "downloadUrl": "https://github.com/benoitzelsmann/swift-click/releases/latest",
-  "softwareVersion": "3.1.0",
+  "softwareVersion": "3.5.0",
   "image": "https://benoitzelsmann.github.io/swift-click/images/og.png",
   "author": {"@type": "Person", "name": "Benoît Zelsmann", "url": "https://github.com/benoitzelsmann"},
   "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
@@ -50,6 +50,8 @@
      "acceptedAnswer": {"@type": "Answer", "text": "No. Swift Click runs on Windows 10 22H2 or Windows 11 (64-bit) with Bluetooth. MyWhoosh can run on the same PC or on another device on the same network."}},
     {"@type": "Question", "name": "Can I choose my direction at junctions in MyWhoosh with the Zwift Click?",
      "acceptedAnswer": {"@type": "Answer", "text": "Yes. Swift Click reads MyWhoosh's direction tiles on screen when you press and clicks the left, straight or right arrow, whether two or three tiles are shown."}},
+    {"@type": "Question", "name": "Can I change the ERG intensity in MyWhoosh with the Zwift Click?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes. During an ERG workout, Swift Click finds MyWhoosh's Intensity bar on screen and clicks its minus or plus button, by 1 % to 10 % per press as you choose in the settings."}},
     {"@type": "Question", "name": "Windows warns that the installer is from an unknown publisher.",
      "acceptedAnswer": {"@type": "Answer", "text": "The installer is not code-signed yet. Choose More info, then Run anyway. Only download it from the official GitHub releases page; the SHA-256 checksum is listed in the release notes."}}
   ]
@@ -209,7 +211,7 @@ footer nav { display:flex; gap:18px; flex-wrap:wrap; }
     <div>
       <p class="eyebrow">Free · Windows · No account</p>
       <h1>Ride MyWhoosh with your Zwift Click.</h1>
-      <p class="lead">Swift Click turns the five buttons of a Zwift Click V2 into gear changes, steering, junction choices, music controls and one-press routines, so you never leave the saddle to reach the keyboard or the mouse.</p>
+      <p class="lead">Swift Click turns the five buttons of a Zwift Click V2 into gear changes, steering, junction choices, ERG intensity, music controls and one-press routines, so you never leave the saddle to reach the keyboard or the mouse.</p>
       <div class="cta">
         <a class="btn btn-primary" href="https://github.com/benoitzelsmann/swift-click/releases/latest">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 19h16"/></svg>
@@ -218,7 +220,7 @@ footer nav { display:flex; gap:18px; flex-wrap:wrap; }
         <a class="btn btn-ghost" href="https://www.facebook.com/groups/1113287361465366/">Join the community</a>
         <a class="btn btn-ghost" href="https://github.com/benoitzelsmann/swift-click">GitHub</a>
       </div>
-      <div class="badges"><span>Virtual shifting</span><span>Steering &amp; junctions</span><span>Media controls</span><span>No subscription</span></div>
+      <div class="badges"><span>Virtual shifting</span><span>Steering &amp; junctions</span><span>ERG intensity</span><span>Media controls</span><span>No subscription</span></div>
     </div>
     <div class="hero-art"><img src="images/controller.png" alt="Zwift Click V2 right controller with Y, Z, A, B and + buttons" width="640" height="640"></div>
   </div>
@@ -248,13 +250,13 @@ footer nav { display:flex; gap:18px; flex-wrap:wrap; }
       </div>
       <div class="card">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7 3 12l5 5M16 7l5 5-5 5M3 12h18"/></svg></div>
-        <h3>Steering</h3>
-        <p>Move left and right across the road for as long as you hold, using MyWhoosh's own steering commands.</p>
+        <h3>Steering &amp; junctions</h3>
+        <p>Move across the road for as long as you hold, and pick left, straight or right at junctions: Swift Click reads the direction tiles and clicks the right one.</p>
       </div>
       <div class="card">
-        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8m0 0L6 7m6 6 6-6M12 13V3M6 7H3V4m15 3h3V4"/></svg></div>
-        <h3>Junctions</h3>
-        <p>Choose left, straight or right. Swift Click reads the direction tiles on screen and clicks the right arrow, with two or three tiles.</p>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M6 12h3M15 12h3M16.5 10.5v3"/></svg></div>
+        <h3>ERG intensity</h3>
+        <p>Raise or lower the intensity of an ERG workout without letting go of the bars, by 1 % to 10 % per press.</p>
       </div>
       <div class="card">
         <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
@@ -293,7 +295,20 @@ footer nav { display:flex; gap:18px; flex-wrap:wrap; }
           </table>
         </div>
       </div>
-      <img class="shot" src="images/controller-buttons.png" alt="Swift Click buttons page: each gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions" width="1166" height="917" loading="lazy">
+      <img class="shot" src="images/controller-buttons.png" alt="Swift Click buttons page: each gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions" width="1060" height="800" loading="lazy">
+    </div>
+    <div class="split reverse">
+      <div>
+        <h2>All of MyWhoosh on your controller</h2>
+        <p>Every MyWhoosh action sits on one screen. A coloured badge shows which button and press already use it, such as <em>Y ×2</em>.</p>
+        <ul>
+          <li><strong>Gear up / down</strong>, sent over the network</li>
+          <li><strong>Move left / right</strong> across the road while you hold</li>
+          <li><strong>Junctions</strong>: left turn, straight on, right turn</li>
+          <li><strong>ERG intensity − / +</strong>, from 1 % to 10 % per press under <em>Settings → General → Advanced controls</em></li>
+        </ul>
+      </div>
+      <img class="shot" src="images/mywhoosh-actions.png" alt="MyWhoosh actions in Swift Click: gears, moves, junction turns and ERG intensity, with badges for the buttons that use them" width="900" height="640" loading="lazy">
     </div>
   </div>
 </section>
@@ -317,9 +332,9 @@ footer nav { display:flex; gap:18px; flex-wrap:wrap; }
     <div class="split">
       <div>
         <h2>Apps and websites</h2>
-        <p>Save MyWhoosh, any application, or a website such as YouTube, Netflix or Deezer. Websites are matched by address, so a new video title doesn't break them, and the right tab is selected in Edge or Chrome.</p>
+        <p>Save MyWhoosh, any application, or a browser tab such as YouTube, Netflix or Deezer, shown with the browser's and the site's logos. Tabs are matched by address, so a new video title doesn't break them, and the right tab is selected in Edge or Chrome.</p>
       </div>
-      <img class="shot" src="images/windows.png" alt="Applications and media page with saved apps and websites" width="900" height="640" loading="lazy">
+      <img class="shot" src="images/windows.png" alt="Applications and media page: MyWhoosh and a YouTube tab in Edge" width="900" height="640" loading="lazy">
     </div>
   </div>
 </section>
