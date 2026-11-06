@@ -2,7 +2,7 @@
 
 Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**. Swift Click turns its five buttons into gear changes, lateral moves, junction choices, media controls, mouse clicks and complete routines, so you never have to leave the saddle to reach the keyboard or the mouse.
 
-[Download for Windows](https://github.com/benoitzelsmann/swift-click/releases/latest) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download for Windows](https://github.com/benoitzelsmann/swift-click/releases/latest) · [Community](https://www.facebook.com/groups/1113287361465366/) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 ![Controller buttons: every gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions](docs/images/controller-buttons.png)
 
@@ -114,6 +114,10 @@ Requires Windows 10 22H2 or Windows 11 (x64) with Bluetooth, and MyWhoosh on the
 - **Keep awake** is an optional, experimental mode for controller firmware 1.2.0. It uses the firmware-update mechanism and asks for your consent first.
 - **Everything stays local.** Settings, positions and logs live in your Windows account; nothing is uploaded.
 
+## Community
+
+Join the [Swift Click Community on Facebook](https://www.facebook.com/groups/1113287361465366/) to get help with setup, share your button layouts and routines, suggest features, and test new versions before they're released. Bugs can also be reported on [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues).
+
 ## Compared with BikeControl
 
 [BikeControl](https://bikecontrol.app/) supports many controllers and apps and is a useful OpenBikeControl reference. Swift Click focuses on one setup — right Click V2, MyWhoosh, Windows — and is free with no daily action limit. See [BikeControl's pricing](https://bikecontrol.app/pricing/) for its current plans.
@@ -122,4 +126,4 @@ Requires Windows 10 22H2 or Windows 11 (x64) with Bluetooth, and MyWhoosh on the
 
 Public distribution and issue tracking. `ui/` holds the PySide6 interface sources; the Bluetooth engine and system controls are private, so these files don't run on their own — use the installer. Publishing the UI sources doesn't grant an open-source license.
 
-Swift Click is an independent project by [benoitzelsmann](https://github.com/benoitzelsmann), not affiliated with Zwift or MyWhoosh. Product names and logos belong to their owners. Feedback: [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) or **Settings → Contact** in the app.
+Swift Click is an independent project by [benoitzelsmann](https://github.com/benoitzelsmann), not affiliated with Zwift or MyWhoosh. Product names and logos belong to their owners. Feedback: [Facebook community](https://www.facebook.com/groups/1113287361465366/), [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) or **Settings → Contact** in the app.
