@@ -44,6 +44,8 @@ To assign an action, click the gesture's slot on the diagram and pick a category
 | **Junction left / straight / right** | Chooses your road when MyWhoosh shows its direction tiles. |
 | **ERG intensity − / +** | Clicks the − or + button of MyWhoosh's *Intensity* bar during an ERG workout, 1 % to 10 % per press (set it under **Settings → General → Advanced controls**). |
 
+![All MyWhoosh actions: gear up and down, move left and right, junction turns and ERG intensity, with coloured badges for the buttons already using them](docs/images/mywhoosh-actions.png)
+
 **Junctions in detail.** MyWhoosh offers no keyboard shortcut or network command for choosing a direction: you normally have to click one of the two or three tiles it shows, and their position changes with their number. When you press a junction gesture, Swift Click looks at a small band of the MyWhoosh window, finds the tile whose arrow points the way you asked, clicks it and puts the pointer back. If that direction isn't offered, nothing is clicked. The image is analysed in memory on your PC and never saved or sent. *ERG intensity − / +* work the same way: Swift Click finds the *Intensity* bar wherever it sits in the MyWhoosh window and clicks its − or + button; if the bar isn't shown, nothing is clicked.
 
 **A link that holds for the whole ride.** Both sides exchange keep-alive messages; after sleep, a Wi-Fi drop or an IP change, Swift Click reconnects on its own. Commands that couldn't be delivered during a reconnection are dropped rather than replayed late, so you never get a surprise shift.
