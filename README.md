@@ -2,7 +2,7 @@
 
 Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**. Swift Click turns its five buttons into gear changes, lateral moves, junction choices, media controls, mouse clicks and complete routines, so you never have to leave the saddle to reach the keyboard or the mouse.
 
-[Download for Windows](https://github.com/benoitzelsmann/swift-click/releases/latest) · [Community](https://www.facebook.com/groups/1113287361465366/) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
+[Download for Windows](https://github.com/benoitzelsmann/swift-click/releases/latest) · [Website](https://benoitzelsmann.github.io/swift-click/) · [Community](https://www.facebook.com/groups/1113287361465366/) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
 ![Controller buttons: every gesture of Y, A, B, Z and + assigned to MyWhoosh, media and routine actions](docs/images/controller-buttons.png)
 
@@ -116,7 +116,7 @@ Requires Windows 10 22H2 or Windows 11 (x64) with Bluetooth, and MyWhoosh on the
 
 ## Community
 
-Join the [Swift Click Community on Facebook](https://www.facebook.com/groups/1113287361465366/) to get help with setup, share your button layouts and routines, suggest features, and test new versions before they're released. Bugs can also be reported on [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues).
+Join the [Swift Click Community on Facebook](https://www.facebook.com/groups/1113287361465366/) to get help with setup, share your button layouts and routines, suggest features, and test new versions before they're released. Bugs can also be reported on [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues). For a quick overview to share with friends, see the [Swift Click website](https://benoitzelsmann.github.io/swift-click/).
 
 ## Compared with BikeControl
 
@@ -126,4 +126,4 @@ Join the [Swift Click Community on Facebook](https://www.facebook.com/groups/111
 
 Public distribution and issue tracking. `ui/` holds the PySide6 interface sources; the Bluetooth engine and system controls are private, so these files don't run on their own — use the installer. Publishing the UI sources doesn't grant an open-source license.
 
-Swift Click is an independent project by [benoitzelsmann](https://github.com/benoitzelsmann), not affiliated with Zwift or MyWhoosh. Product names and logos belong to their owners. Feedback: [Facebook community](https://www.facebook.com/groups/1113287361465366/), [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) or **Settings → Contact** in the app.
+Swift Click is an independent project by [benoitzelsmann](https://github.com/benoitzelsmann), not affiliated with Zwift or MyWhoosh. Product names and logos belong to their owners. Website: [benoitzelsmann.github.io/swift-click](https://benoitzelsmann.github.io/swift-click/). Feedback: [Facebook community](https://www.facebook.com/groups/1113287361465366/), [GitHub Issues](https://github.com/benoitzelsmann/swift-click/issues) or **Settings → Contact** in the app.
