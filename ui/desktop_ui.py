@@ -42,7 +42,13 @@ COLORS = {
     "a": "#8cc454",
     "b": "#f64098",
     "plus": "#253246",
+    "minus": "#253246",
 }
+MODEL_TITLES = {"click_v2_right": "Zwift Click V2 · Right", "click_v1": "Zwift Click V1"}
+
+
+def key_name(key):
+    return {"plus": "+", "minus": "−"}.get(key, key.upper())
 from ui_theme import stylesheet, color
 STYLE = stylesheet("light")
 
@@ -77,7 +83,7 @@ class UsageBadges(QWidget):
 
     def set_uses(self, uses, summary):
         self.summary = summary if uses else ""
-        self.badges = [({"a": "#5f9a2e"}.get(key, COLORS[key]), ("+" if key == "plus" else key.upper()) +
+        self.badges = [({"a": "#5f9a2e"}.get(key, COLORS[key]), key_name(key) +
                         (" " + tr(GESTURE_MARKS[gesture]) if GESTURE_MARKS[gesture] else ""))
                        for key, gesture in uses[:3]]
         if len(uses) > 3:
@@ -281,10 +287,12 @@ class ControllerEditor(QWidget):
         self.photo.setMaximumSize(190, 190)
         self.photo.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         grid.addWidget(self.photo, 1, 2, 1, 2, Qt.AlignmentFlag.AlignCenter)
+        # A Click V1 shows only + and −; its − card takes the B slot hidden for it.
         for key, row, column in (("y", 0, 2), ("z", 1, 0), ("a", 1, 4),
-                                 ("b", 2, 1), ("plus", 2, 3)):
+                                 ("b", 2, 1), ("minus", 2, 1), ("plus", 2, 3)):
             frame = self.binding_card(key, bindings)
             grid.addWidget(frame, row, column, 1, 2, Qt.AlignmentFlag.AlignVCenter)
+        self.apply_model(window.controller.config.get("model", "click_v2_right"))
 
         # Gesture checks appear only while managing presses, to keep the diagram compact.
         self.manage = push("Manage presses", self.toggle_presses)
@@ -534,7 +542,7 @@ class ControllerEditor(QWidget):
                 if position_id is not None and binding.get("position_id") != position_id:
                     continue
                 found.append((key, gesture) if detailed else
-                             ("+" if key == "plus" else key.upper()) + " · " + tr(GESTURE_NAMES[gesture]))
+                             key_name(key) + " · " + tr(GESTURE_NAMES[gesture]))
         return found
 
     def usage_text(self, action, position_id=None):
@@ -665,11 +673,11 @@ class ControllerEditor(QWidget):
         grid.setContentsMargins(10, 9, 10, 9)
         grid.setHorizontalSpacing(6)
         grid.setVerticalSpacing(4)
-        name = "+" if key == "plus" else key.upper()
+        name = key_name(key)
         badge = label(name)
         badge.setFixedSize(25, 25)
         badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ink = "white" if key == "plus" else "#101822"
+        ink = "white" if key in ("plus", "minus") else "#101822"
         badge.setStyleSheet(f"background:{COLORS[key]};color:{ink};border-radius:8px;font-weight:700")
         grid.addWidget(badge, 0, 0, 4, 1)
         for row,kind in enumerate(GESTURES):
@@ -691,6 +699,17 @@ class ControllerEditor(QWidget):
         grid.setColumnStretch(3, 1)
         self.cards[key] = frame
         return frame
+
+    def apply_model(self, model):
+        if getattr(self, "model", None) == model:
+            return
+        self.model = model
+        from settings import model_keys
+        keys = model_keys({"model": model})
+        for key, frame in self.cards.items():
+            frame.setVisible(key in keys)
+        # The photo shows the right Click V2; a Click V1 has no picture here.
+        self.photo.setVisible(model == "click_v2_right")
 
     def set_pressed(self, pressed):
         pressed = set(pressed)
@@ -861,7 +880,8 @@ def build_ui(w):
     line.addSpacing(2)
     info = QVBoxLayout()
     info.setSpacing(2)
-    info.addWidget(label("Zwift Click V2 · Right", size=16))
+    w.model_title = label(MODEL_TITLES["click_v2_right"], size=16)
+    info.addWidget(w.model_title)
     w.ble_status = label("Not connected", "muted")
     w.ble_status.setWordWrap(False)
     w.ble_details = label("", "muted")
@@ -993,6 +1013,11 @@ def show_page(w, index):
 
 
 def refresh_ui(w):
+    model = w.controller.config.get("model", "click_v2_right")
+    w.editor.apply_model(model)
+    w.model_title.setText(MODEL_TITLES.get(model, MODEL_TITLES["click_v2_right"]))
+    # Keep-awake was qualified on the right Click V2 only.
+    w.maintenance.setVisible(model == "click_v2_right")
     w.destination_choice.setVisible(w.controller.windows.pending_choice is not None)
     w.recover_button.setEnabled(not w.recovering_link and not w.stopping and not w.closing)
     w.command_status.setText(w.controller.last_command or "No command sent yet")
@@ -1093,10 +1118,10 @@ def refresh_ui(w):
     w.received_buttons.setVisible(status["connected"] and bool(status["pressed"] or status["last_pressed"]))
     if status["connected"]:
         if status["pressed"]:
-            names = " · ".join("+" if key == "plus" else key.upper() for key in sorted(status["pressed"]))
+            names = " · ".join(key_name(key) for key in sorted(status["pressed"]))
             w.received_buttons.setText("Button input · " + names)
         else:
-            names = " · ".join("+" if key == "plus" else key.upper() for key in status["last_pressed"])
+            names = " · ".join(key_name(key) for key in status["last_pressed"])
             w.received_buttons.setText("Last button received · " + names if names else "Button input · press a button to test")
     else:
         w.received_buttons.setText("Button input · waiting for a connection")

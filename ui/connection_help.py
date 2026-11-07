@@ -66,9 +66,9 @@ MYWHOOSH_STEPS = (
 )
 
 CONTROLLER_STEPS = (
-    Step("Wake the right controller",
-         "Enable Bluetooth on your PC and press a button on the <b>right Zwift Click V2</b>. "
-         "Only the right controller with A/B/Y/Z/+ is supported. Close Zwift and any "
+    Step("Wake the controller",
+         "Enable Bluetooth on your PC and press a button on the <b>right Zwift Click V2</b> "
+         "or on a <b>Zwift Click V1</b>. The left Click V2 is not supported. Close Zwift and any "
          "other app that may already be connected to it.",
          "click-right.png", "Pressing a button wakes the right Click V2. The left controller is not supported."),
     Step("Connect and check button input",

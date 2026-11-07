@@ -449,7 +449,7 @@ class MousePage(QWidget):
         for key,mapping in self.window.controller.config["buttons"].items():
             for gesture,binding in mapping.items():
                 if isinstance(binding,dict) and binding.get("position_id") == ident:
-                    uses.append(f"{'+' if key == 'plus' else key.upper()} · " +
+                    uses.append(f"{ {'plus': '+', 'minus': '−'}.get(key, key.upper())} · " +
                                 {"short":"Simple","double":"Double","long":"Long","hold":"Continuous hold"}[gesture])
         routines = [routine["name"] for routine in self.window.controller.config["routines"].values()
                     if routine_references(routine,self.window.controller.config,position_id=ident)]

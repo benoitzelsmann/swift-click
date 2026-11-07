@@ -239,7 +239,7 @@
   "The <b>handlebar turns blue</b> in MyWhoosh and Swift Click shows <b>Connected</b>. In <b>Settings → Buttons</b>, assign Gear up and Gear down to two gestures. Start a ride and check that the displayed gear changes.": "Le <b>guidon devient bleu</b> dans MyWhoosh et Swift Click affiche <b>Connecté</b>. Dans <b>Paramètres → Boutons</b>, affectez Vitesse + et Vitesse − à deux gestes. Démarrez une sortie et vérifiez le changement du rapport affiché.",
   "Blue LAN and a blue handlebar mean MyWhoosh accepted the network connection.": "LAN et guidon bleus indiquent que MyWhoosh a accepté la connexion réseau.",
   "Wake the right controller": "Réveiller la manette droite",
-  "Enable Bluetooth on your PC and press a button on the <b>right Zwift Click V2</b>. Only the right controller with A/B/Y/Z/+ is supported. Close Zwift and any other app that may already be connected to it.": "Activez le Bluetooth du PC et appuyez sur la <b>Zwift Click V2 droite</b>. Seule la manette droite A/B/Y/Z/+ est prise en charge. Fermez Zwift et toute autre application déjà connectée à cette manette.",
+  "Enable Bluetooth on your PC and press a button on the <b>right Zwift Click V2</b> or on a <b>Zwift Click V1</b>. The left Click V2 is not supported. Close Zwift and any other app that may already be connected to it.": "Activez le Bluetooth du PC et appuyez sur la <b>Zwift Click V2 droite</b> ou sur une <b>Zwift Click V1</b>. La Click V2 gauche n’est pas prise en charge. Fermez Zwift et toute autre application déjà connectée à cette manette.",
   "Pressing a button wakes the right Click V2. The left controller is not supported.": "Un appui réveille la Click V2 droite. La manette gauche n’est pas prise en charge.",
   "Connect and check button input": "Connecter et vérifier les boutons",
   "Click <b>Connect</b> above and wait for <b>Connected</b>. Press a button: the Button input indicator confirms reception even if no action is assigned yet.": "Cliquez sur <b>Connecter</b> ci-dessus et attendez <b>Connecté</b>. Appuyez sur un bouton : le témoin de réception confirme l’appui, même sans action affectée.",
@@ -616,5 +616,11 @@
   "Visit website": "Visiter le site",
   "Join the community": "Rejoindre la communauté",
   "Community": "Communauté",
-  "Help, ideas and early versions, shared with other riders.": "Aide, idées et versions en avant-première, avec d'autres cyclistes."
+  "Help, ideas and early versions, shared with other riders.": "Aide, idées et versions en avant-première, avec d'autres cyclistes.",
+  "Zwift Click V1": "Zwift Click V1",
+  "All buttons must be configured": "Tous les boutons doivent être configurés",
+  "Unknown controller model": "Modèle de manette inconnu",
+  "Unsupported controller: use a right Click V2 or a Click V1": "Manette non prise en charge : utiliser une Click V2 droite ou une Click V1",
+  "Click V1 connected, firmware {version}": "Click V1 connectée, firmware {version}",
+  "Wake the controller": "Réveiller la manette"
 }
