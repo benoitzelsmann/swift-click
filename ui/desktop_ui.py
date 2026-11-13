@@ -34,6 +34,7 @@ ACTION_GROUPS = {
     "Media": ("volume_down", "volume_up", "volume_mute", "media_previous", "media_play_pause", "media_next", "seek_back", "seek_forward"),
     "Mouse": ("mouse_click", "mouse_position"),
     "Routines": ("routine",),
+    "Keyboard": ("key_shortcut",),
 }
 
 COLORS = {
@@ -44,6 +45,11 @@ COLORS = {
     "plus": "#253246",
     "minus": "#253246",
 }
+CONTROLLER_PHOTOS = {"click_v2_right": ("click-right.png", "Right-hand Zwift Click V2 controller"),
+                     "click_v1": ("click-v1.png", "Zwift Click V1 controller")}
+# (row, column) of each two-column card in the 3 x 6 diagram grid.
+CARD_PLACES = {"click_v2_right": {"y": (0, 2), "z": (1, 0), "a": (1, 4), "b": (2, 1), "plus": (2, 3)},
+               "click_v1": {"plus": (0, 2), "minus": (2, 2)}}
 MODEL_TITLES = {"click_v2_right": "Zwift Click V2 · Right", "click_v1": "Zwift Click V1"}
 
 
@@ -227,6 +233,9 @@ class AssignmentButton(KeyboardButton):
         if ident == "routine":
             routine = self.window().controller.config["routines"].get(action["routine_id"])
             self.full_text = routine["name"] if routine else tr("Choose a routine")
+        if ident == "key_shortcut":
+            from keyboard_shortcuts import shortcut_label
+            self.full_text = shortcut_label(action)
         self.setToolTip("")
         self.setAccessibleName(tr(self.caption) + " · " + self.full_text)
         self.render_text()
@@ -242,8 +251,12 @@ class AssignmentButton(KeyboardButton):
 class ControllerImage(QWidget):
     def __init__(self, source="click-right.png", accessible_name="Right-hand Zwift Click V2 controller"):
         super().__init__()
+        self.set_source(source, accessible_name)
+
+    def set_source(self, source, accessible_name):
         self.image = QPixmap(str(Path(__file__).with_name("assets") / source))
         self.setAccessibleName(accessible_name)
+        self.update()
 
     def sizeHint(self):
         return QSize(170, 170)
@@ -287,11 +300,9 @@ class ControllerEditor(QWidget):
         self.photo.setMaximumSize(190, 190)
         self.photo.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         grid.addWidget(self.photo, 1, 2, 1, 2, Qt.AlignmentFlag.AlignCenter)
-        # A Click V1 shows only + and −; its − card takes the B slot hidden for it.
-        for key, row, column in (("y", 0, 2), ("z", 1, 0), ("a", 1, 4),
-                                 ("b", 2, 1), ("minus", 2, 1), ("plus", 2, 3)):
-            frame = self.binding_card(key, bindings)
-            grid.addWidget(frame, row, column, 1, 2, Qt.AlignmentFlag.AlignVCenter)
+        self.grid = grid
+        for key in ("y", "z", "a", "b", "minus", "plus"):
+            self.binding_card(key, bindings)
         self.apply_model(window.controller.config.get("model", "click_v2_right"))
 
         # Gesture checks appear only while managing presses, to keep the diagram compact.
@@ -336,7 +347,8 @@ class ControllerEditor(QWidget):
             button = push(group,lambda _=False,g=group:self.show_group(g))
             button.setObjectName("category")
             button.setMinimumHeight(62)
-            button.setIcon(action_icon("shift_up" if group == "MyWhoosh" else "routine" if group == "Routines" else "mouse_click"))
+            button.setIcon(action_icon({"MyWhoosh": "shift_up", "Routines": "routine",
+                                        "Keyboard": "key_shortcut"}.get(group, "mouse_click")))
             category_grid.addWidget(button,index//2,index%2)
             self.category_buttons[group] = button
         self.pick_pages.addWidget(categories)
@@ -370,7 +382,7 @@ class ControllerEditor(QWidget):
                 continue
             if action == "none":
                 option.setMinimumHeight(34)
-                category_grid.addWidget(option,2,0,1,2)
+                category_grid.addWidget(option,(len(ACTION_GROUPS)+1)//2,0,1,2)
             else:
                 # One clean tile per action; tiles already in use carry coloured key badges.
                 option.setObjectName("option")
@@ -486,6 +498,9 @@ class ControllerEditor(QWidget):
             # Routines has a single action: go straight to choosing the routine.
             self.show_routines()
             return
+        if group == "Keyboard":
+            self.record_shortcut()
+            return
         self.choices_frame.setMinimumWidth(620 if group in ("Media", "MyWhoosh") else 540)
         self.choices_frame.setMaximumWidth(640)
         self.refresh_usage()
@@ -531,6 +546,9 @@ class ControllerEditor(QWidget):
         if action_id(binding) == "routine":
             routine = self.window_owner.controller.config["routines"].get(binding["routine_id"])
             return routine["name"] if routine else tr("Choose a routine")
+        if action_id(binding) == "key_shortcut":
+            from keyboard_shortcuts import shortcut_label
+            return shortcut_label(binding)
         return tr(ACTIONS[action_id(binding)][1])
 
     def uses(self, action, position_id=None, detailed=False):
@@ -579,6 +597,9 @@ class ControllerEditor(QWidget):
             return
         if action == "routine":
             self.show_routines()
+            return
+        if action == "key_shortcut":
+            self.record_shortcut()
             return
         self.pending = action
         self.update_pending()
@@ -639,6 +660,12 @@ class ControllerEditor(QWidget):
     def select_position(self, ident):
         self.pending = {"action":"mouse_position","position_id":ident}
         self.show_positions()
+
+    def record_shortcut(self):
+        from shortcut_dialog import ask_shortcut
+        binding = ask_shortcut(self.window(), self.field.action)
+        if binding is not None:
+            self.commit(binding)
 
     def save_action(self):
         if self.pending is not None:
@@ -706,10 +733,14 @@ class ControllerEditor(QWidget):
         self.model = model
         from settings import model_keys
         keys = model_keys({"model": model})
+        # Cards sit around the photo where the buttons are on the controller.
         for key, frame in self.cards.items():
+            self.grid.removeWidget(frame)
+            # Re-add before showing: a parentless card would open as its own window.
+            row, column = CARD_PLACES[model].get(key, (2, 0))
+            self.grid.addWidget(frame, row, column, 1, 2, Qt.AlignmentFlag.AlignVCenter)
             frame.setVisible(key in keys)
-        # The photo shows the right Click V2; a Click V1 has no picture here.
-        self.photo.setVisible(model == "click_v2_right")
+        self.photo.set_source(*CONTROLLER_PHOTOS.get(model, CONTROLLER_PHOTOS["click_v2_right"]))
 
     def set_pressed(self, pressed):
         pressed = set(pressed)
@@ -897,6 +928,23 @@ def build_ui(w):
     line.addWidget(w.connect_button)
     line.addWidget(w.disconnect_button)
     content.addLayout(line)
+    # Click V2 left pods need Zwift's daily server-signed unlock, so only the
+    # right pod and the Click V1 are offered.
+    from ui_controls import ChoiceGroup
+    choice = QHBoxLayout()
+    choice.setSpacing(12)
+    w.model_choice = ChoiceGroup(translate=True)
+    w.model_choice.setAccessibleName("Controller")
+    for text, value in (("Auto-detect", "auto"), ("Zwift Click V1", "click_v1"),
+                        ("Zwift Click V2 · right side", "click_v2_right")):
+        w.model_choice.addItem(text, value)
+    w.model_choice.setCurrentIndex(max(0, w.model_choice.findData(w.controller.config.get("preferred_model", "auto"))))
+    w.model_choice.currentIndexChanged.connect(lambda _: w.choose_preferred_model(w.model_choice.currentData()))
+    choice.addWidget(w.model_choice, 1)
+    w.forget_button = push("Forget this controller", w.forget_controller)
+    w.forget_button.setToolTip("Clear the saved controller so the next Connect searches again.")
+    choice.addWidget(w.forget_button)
+    content.addLayout(choice)
     footer = QHBoxLayout()
     w.received_buttons = label("Button input · waiting for a connection", "muted")
     footer.addWidget(w.received_buttons, 1)
@@ -1099,6 +1147,9 @@ def refresh_ui(w):
     w.connect_button.setEnabled(not (busy or w.connecting_ble or stopping))
     w.connect_button.setText("Searching…" if w.connecting_ble else "Connect")
     w.disconnect_button.setEnabled(busy and not stopping)
+    idle = not (busy or w.connecting_ble or stopping or w.controller.oad_pending)
+    w.model_choice.setEnabled(idle)
+    w.forget_button.setEnabled(idle and bool(w.controller.config["address"]))
     for field, active in (
         (w.game_status, connected),
         (w.dashboard_states[0], connected),

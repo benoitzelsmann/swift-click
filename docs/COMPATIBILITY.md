@@ -1,13 +1,16 @@
-# Swift Click 3.5.0 compatibility
+# Swift Click 3.6.0 compatibility
 
-3.5.0 is a Windows desktop release with an unsigned installer. The following separates implemented
+3.6.0 is the stable Windows desktop release with an unsigned installer. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
 | --- | --- |
 | Operating system | Windows 10 22H2 or Windows 11, x64, Intel or AMD |
 | Controller | Zwift Click V2 right, Y/A/B/Z/+, tested firmware 1.2.0 |
-| Other controllers | Left Click V2, Click V1, Play and Ride are not supported |
+| Click V1 | + and −, firmware 1.1.0 or later; protocol from OpenBikeControl/bikecontrol, keep-awake and idle reconnection not used |
+| Controller choice | Auto-detect, Click V1 or Click V2 right; Forget clears the saved controller |
+| Other controllers | Left Click V2 (needs Zwift's daily server-signed unlock), Play and Ride are not supported |
+| Keyboard shortcuts | Ctrl / Alt / Shift / Win plus one key, sent with Windows SendInput to the window in front |
 | MyWhoosh gears | OpenBikeControl network connection; independent of foreground focus |
 | Media | Windows volume, mute/unmute, play/pause and previous/next track |
 | Video | Complete left/right key presses to the selected Media window; player needs keyboard focus |
@@ -18,7 +21,7 @@ features, completed checks and hardware qualification still in progress.
 | MyWhoosh junctions | Reads the on-screen direction tiles at press time and clicks the matching arrow inside MyWhoosh; tested with MyWhoosh 5.7.0 at 1920 × 1080 |
 | MyWhoosh ERG intensity | Finds the Intensity bar at press time and clicks − or + inside MyWhoosh, 1 to 10 clicks per press; recognised from a MyWhoosh 5.7.0 capture, not yet qualified in a live workout |
 | Mouse | Named physical coordinates, local previews and associated windows; targeted routine clicks verify the window |
-| macOS / Windows ARM | Not available or qualified |
+| macOS / Windows ARM | Not available or qualified; a macOS version is in preparation |
 | Browser extension | Not used |
 
 Five editable timing controls were added in 1.4.0. Existing configurations receive the previous defaults without resetting assignments; active presses retain their snapshots.

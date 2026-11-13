@@ -1,6 +1,6 @@
 # Swift Click
 
-Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**. Swift Click turns its five buttons into gear changes, lateral moves, junction choices, media controls, mouse clicks and complete routines, so you never have to leave the saddle to reach the keyboard or the mouse.
+Ride **MyWhoosh on Windows with a right-hand Zwift Click V2 or a Zwift Click V1**. Swift Click turns its buttons into gear changes, lateral moves, junction choices, media controls, keyboard shortcuts, mouse clicks and complete routines, so you never have to leave the saddle to reach the keyboard or the mouse.
 
 [Download for Windows](https://github.com/benoitzelsmann/swift-click/releases/latest) · [Website](https://benoitzelsmann.github.io/swift-click/) · [Community](https://www.facebook.com/groups/1113287361465366/) · [Report an issue](https://github.com/benoitzelsmann/swift-click/issues) · [Installation](docs/INSTALLATION.md) · [Compatibility](docs/COMPATIBILITY.md) · [Privacy](docs/PRIVACY.md)
 
@@ -8,21 +8,25 @@ Ride **MyWhoosh on Windows with a Zwift Click V2 right controller**. Swift Click
 
 ## Why Swift Click
 
-Many smart trainers ship with Zwift Cog and Click hardware. [MyWhoosh is free to ride](https://www.mywhoosh.com/docs/is-there-a-membership-fee-to-use-mywhoosh/), but the Click V2 does not pair with it for shifting. Swift Click bridges the two: it reads the controller over Bluetooth and talks to MyWhoosh on your local network through the OpenBikeControl protocol. No account, subscription, daily limit or telemetry.
+Many smart trainers ship with Zwift Cog and Click hardware. [MyWhoosh is free to ride](https://www.mywhoosh.com/docs/is-there-a-membership-fee-to-use-mywhoosh/), but the Click does not pair with it for shifting. Swift Click bridges the two: it reads the controller over Bluetooth and talks to MyWhoosh on your local network through the OpenBikeControl protocol. No account, subscription, daily limit or telemetry.
 
-**Supported controller:** the right-hand Zwift Click V2 (buttons **Y, A, B, Z, +**). The left-hand controller, Click V1, Zwift Play and Zwift Ride are not supported.
+**Supported controllers:** the right-hand Zwift Click V2 (buttons **Y, A, B, Z, +**) and the Zwift Click V1 (buttons **+** and **−**). Zwift Play and Zwift Ride are not supported.
+
+**Why not the left-hand Click V2?** It stays locked until the Zwift app gets it unlocked by Zwift's servers with your Zwift account, about once a day. The unlock is signed by Zwift and can't be reproduced offline, so Swift Click leaves the left side alone and tells you so if it's the only controller it finds. The right-hand Click V2 is never locked.
 
 ## How it works
 
-1. **Connect** the controller and MyWhoosh once, on the **Connections** page.
+1. **Connect** the controller and MyWhoosh once, on the **Connections** page. Choose *Auto-detect*, *Zwift Click V1* or *Zwift Click V2 · right side*; **Forget this controller** clears the saved one.
 2. **Assign** an action to each gesture of each button, under **Settings → Buttons**.
 3. **Ride.** Swift Click runs in the background and sends each action the moment you press.
 
 The **Dashboard** shows both connections at a glance, the last command sent, and buttons to start the session or open MyWhoosh.
 
+![Connections: choose Auto-detect, Zwift Click V1 or Zwift Click V2 right side, then connect the controller and MyWhoosh](docs/images/connections.png)
+
 ## Buttons and gestures
 
-Each of the five buttons recognises four gestures, so up to twenty actions fit on one small controller:
+Each button recognises four gestures — five buttons on the Click V2, two on the Click V1 — so up to twenty actions fit on one small controller:
 
 | Gesture | When it fires | Typical use |
 |---|---|---|
@@ -33,7 +37,7 @@ Each of the five buttons recognises four gestures, so up to twenty actions fit o
 
 Only **Simple** is active by default, so each press reacts instantly. Choose **Manage presses** on the Buttons page: a check box appears next to every gesture, tick the ones you want, then choose **Done**. Timings are adjustable under **Settings → General**.
 
-To assign an action, click the gesture's slot on the diagram and pick a category (**MyWhoosh**, **Media**, **Mouse** or **Routines**), then the action.
+To assign an action, click the gesture's slot on the diagram and pick a category (**MyWhoosh**, **Media**, **Mouse**, **Routines** or **Keyboard**), then the action. With a Click V1 the diagram shows its photo with **+** above and **−** below. Switching between Click V1 and Click V2 keeps every assignment; **+** is shared by both.
 
 ## MyWhoosh
 
@@ -64,6 +68,10 @@ Control what plays next to MyWhoosh without touching the keyboard:
 - **Click saved position** clicks a point you captured earlier (for example a *Skip ad* button), then returns the pointer where it was.
 
 To save a point, open **Actions → Mouse positions**, name it and choose **Capture position**: Swift Click hides for three seconds while you place the pointer. It records the window under the point, and refuses to click if that window isn't in front or the point is covered, so a click never lands in the wrong place.
+
+## Keyboard shortcuts
+
+Choose **Keyboard** in the action picker and press the shortcut you want, for example *Ctrl + Shift + S* or *Alt + Tab*: Swift Click replays it when you press the button, in whichever window is in front. Modifier buttons (Ctrl, Alt, Shift, Win) let you add **Win** when Windows keeps a Win shortcut for itself. Shortcuts are stored as physical keys, so they work the same on AZERTY and QWERTY keyboards.
 
 ## Applications and media targets
 
@@ -96,7 +104,7 @@ More detail in the [windows, clicks and routines guide](docs/ACTIONS.md).
 ## Settings
 
 - **Appearance**: light, dark or follow Windows.
-- **Language**: English or French.
+- **Language**: English or French, asked at first launch.
 - **Gesture timings**: double-press window, long-press and hold thresholds, repeat speed for volume and video.
 - **Advanced controls**: lateral moves over the network (default) or with the A / D keys.
 - **Settings backup**: export everything to one local file and restore it later; a recovery copy is kept before every restore.
@@ -106,7 +114,7 @@ More detail in the [windows, clicks and routines guide](docs/ACTIONS.md).
 ## Install
 
 1. Download the file ending in **Setup.exe** from [Releases](https://github.com/benoitzelsmann/swift-click/releases/latest) and run it. Python is included.
-2. In **Connections**, wake the controller and choose **Connect**.
+2. In **Connections**, choose your controller (or leave *Auto-detect*), wake it and choose **Connect**.
 3. Choose **Connect** for MyWhoosh, then in MyWhoosh click the **OpenBikeControl** handlebar icon and accept with **YES**.
 4. Assign your buttons under **Settings → Buttons**.
 
@@ -114,7 +122,7 @@ Requires Windows 10 22H2 or Windows 11 (x64) with Bluetooth, and MyWhoosh on the
 
 ## Good to know
 
-- **Keep awake** is an optional, experimental mode for controller firmware 1.2.0. It uses the firmware-update mechanism and asks for your consent first.
+- **Keep awake** is an optional, experimental mode for the right Click V2 with firmware 1.2.0. It uses the firmware-update mechanism and asks for your consent first.
 - **Everything stays local.** Settings, positions and logs live in your Windows account; nothing is uploaded.
 
 ## Community
@@ -123,7 +131,7 @@ Join the [Swift Click Community on Facebook](https://www.facebook.com/groups/111
 
 ## Compared with BikeControl
 
-[BikeControl](https://bikecontrol.app/) supports many controllers and apps and is a useful OpenBikeControl reference. Swift Click focuses on one setup — right Click V2, MyWhoosh, Windows — and is free with no daily action limit. See [BikeControl's pricing](https://bikecontrol.app/pricing/) for its current plans.
+[BikeControl](https://bikecontrol.app/) supports many controllers and apps and is a useful OpenBikeControl reference. Swift Click focuses on one setup — Click V1 or right Click V2, MyWhoosh, Windows — and is free with no daily action limit. See [BikeControl's pricing](https://bikecontrol.app/pricing/) for its current plans.
 
 ## This repository
 

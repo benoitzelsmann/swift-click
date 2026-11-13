@@ -1,18 +1,19 @@
 """Reusable named windows, default targets and read-only automatic discovery."""
 import asyncio
+import sys
 import copy
 import re
 import time
 import uuid
 from collections import Counter
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget,QButtonGroup
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget
 from ui_controls import ChoiceGroup
 from desktop_ui import card,label,push,make_page
 from ui_controls import CatalogList,confirm_dialog
 from ui_icons import icon,application_icon,application_name,site_icon,paired_icon
 from i18n import tr,language
-from settings import role_ref,routine_steps,routine_references
+from settings import role_ref,routine_references
 from browser_tabs import list_tabs, matching_tabs, supported
 from destinations import SITES, website_url, site_host
 
@@ -308,11 +309,16 @@ class WindowsPage(QWidget):
         import os
         from pathlib import Path
         from window_actions import Window
-        for base, relative in ((os.environ.get('ProgramFiles(x86)', ''), 'Microsoft/Edge/Application/msedge.exe'),
-                               (os.environ.get('ProgramFiles', ''), 'Google/Chrome/Application/chrome.exe'),
-                               (os.environ.get('LOCALAPPDATA', ''), 'Google/Chrome/Application/chrome.exe')):
-            path = Path(base) / relative
-            if path.is_file() and not any(w.path.casefold() == str(path).casefold() for w in self.available):
+        if sys.platform == 'darwin':
+            from mac_browser import DEFAULT_BROWSERS
+            installed = [Path(p) for p in DEFAULT_BROWSERS]
+        else:
+            installed = [Path(base) / relative for base, relative in (
+                (os.environ.get('ProgramFiles(x86)', ''), 'Microsoft/Edge/Application/msedge.exe'),
+                (os.environ.get('ProgramFiles', ''), 'Google/Chrome/Application/chrome.exe'),
+                (os.environ.get('LOCALAPPDATA', ''), 'Google/Chrome/Application/chrome.exe'))]
+        for path in installed:
+            if path.exists() and not any(w.path.casefold() == str(path).casefold() for w in self.available):
                 self.available.append(Window(0, str(path), application_name(str(path))))
         self.list.clear()
         names = [tr(application_name(window.path)) for window in self.available]

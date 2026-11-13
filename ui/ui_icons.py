@@ -130,6 +130,11 @@ def _render_icon(name, color):
     elif name == "detect":
         painter.drawEllipse(QRectF(3,3,13,13))
         painter.drawLine(15,15,21,21)
+    elif name == "keyboard":
+        painter.drawRoundedRect(QRectF(2.5,6,19,12),2,2)
+        for x in (6,10,14,18):
+            painter.drawPoint(QPointF(x,10))
+        painter.drawLine(QPointF(8,14.2),QPointF(16,14.2))
     elif name == "system":
         for x,y in ((3,3),(13,3),(3,13),(13,13)):
             painter.drawRect(QRectF(x,y,8,8))
@@ -405,7 +410,8 @@ def action_icon(action):
         return QIcon()
     if action == "routine":
         return icon("routine")
-    names = {"mouse_click": "click", "mouse_position": "position", "switch_windows": "windows"}
+    names = {"mouse_click": "click", "mouse_position": "position", "switch_windows": "windows",
+             "key_shortcut": "keyboard"}
     if action.startswith(("volume_", "media_", "seek_")):
         return icon(action)
     return icon(names.get(action, "system"))

@@ -1,7 +1,7 @@
 """Accessible language buttons with flags painted at the display's native DPI."""
-from PySide6.QtCore import Qt, Signal, QRectF, QLineF
+from PySide6.QtCore import Qt, Signal, QRectF, QLineF, QLocale
 from PySide6.QtGui import QPainter, QPainterPath, QColor, QPen
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QButtonGroup
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, QDialog, QLabel, QPushButton
 
 from ui_controls import KeyboardButton
 from i18n import LANGUAGES
@@ -80,3 +80,33 @@ class LanguagePicker(QWidget):
         self._index = index
         self.group.button(index).setChecked(True)
         self.currentIndexChanged.emit(index)
+
+
+def system_language():
+    """Supported language closest to the system locale, English otherwise."""
+    code = QLocale.system().name().split("_")[0]
+    return code if code in LANGUAGES else "en"
+
+
+def ask_first_language(parent=None):
+    """First-launch choice, written in both languages since none is chosen yet.
+
+    Returns the chosen code, or None when the dialog is closed without choosing."""
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("Swift Click")
+    layout = QVBoxLayout(dialog)
+    layout.setContentsMargins(28, 24, 28, 24)
+    layout.setSpacing(16)
+    title = QLabel("Choose your language · Choisissez votre langue")
+    title.setStyleSheet("font-size:16px;font-weight:600")
+    layout.addWidget(title)
+    picker = LanguagePicker()
+    picker.setAccessibleName("Language · Langue")
+    picker.setCurrentIndex(picker.findData(system_language()))
+    layout.addWidget(picker)
+    button = QPushButton("Continue · Continuer")
+    button.setDefault(True)
+    button.clicked.connect(dialog.accept)
+    layout.addWidget(button, 0, Qt.AlignmentFlag.AlignRight)
+    dialog.setMinimumWidth(460)
+    return picker.currentData() if dialog.exec() == QDialog.DialogCode.Accepted else None

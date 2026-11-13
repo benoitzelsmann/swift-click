@@ -93,6 +93,15 @@ Assign it to Simple, Double or Long; it is excluded from Continuous hold. Gestur
 timing details are displayed under **Settings → General**. The old direct Switch
 windows shortcut is no longer offered; add a Switch step to a named routine instead.
 
+## Keyboard shortcuts
+
+Choose **Keyboard** in the action picker: a dialog records the keys you press together,
+for example *Ctrl + Shift + S*. Ctrl, Alt, Shift and Win buttons add or remove a
+modifier; add **Win** with its button when Windows keeps a Win shortcut for itself.
+**Save** assigns it. The shortcut goes to the window in front, as if typed on the
+keyboard, and is stored as physical keys so AZERTY and QWERTY behave the same.
+Shortcuts are available for Simple, Double and Long, not for Continuous hold.
+
 ## Adjustable durations
 
 Use **Settings → General → Button timing** to change the following values and
