@@ -2,11 +2,11 @@
 import copy
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from settings import validate, write_config
 from app_paths import config_dir
+from settings import validate, write_config
 
 MAX_BACKUP_BYTES = 16 * 1024 * 1024
 
@@ -29,7 +29,7 @@ def read_backup(path):
 
 def export_backup(path, configuration):
     payload = {"format": "swift-click-backup", "version": 1,
-               "created_at": datetime.now(timezone.utc).isoformat(),
+               "created_at": datetime.now(UTC).isoformat(),
                "configuration": validate(configuration)}
     write_config(Path(path), payload)
 
@@ -50,8 +50,9 @@ def restore_backup(controller, configuration):
 
 def choose_export(window):
     from PySide6.QtWidgets import QFileDialog
-    from ui_controls import show_message
+
     from i18n import tr
+    from ui_controls import show_message
     filename, _ = QFileDialog.getSaveFileName(window, tr("Export settings"),
         "SwiftClick-settings.json", tr("JSON backup (*.json)"))
     if not filename:
@@ -65,8 +66,9 @@ def choose_export(window):
 
 def choose_import(window):
     from PySide6.QtWidgets import QFileDialog
-    from ui_controls import confirm_dialog, show_message
+
     from i18n import tr
+    from ui_controls import confirm_dialog, show_message
     if window.connecting_ble or window.controller.connected or (window.controller.task and not window.controller.task.done()) or window.controller.oad_pending:
         show_message(window, "Restore settings", "Disconnect the controller before restoring a backup.")
         return

@@ -2,14 +2,30 @@
 import copy
 import threading
 import uuid
-from PySide6.QtCore import Qt,QSize
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QStackedWidget,QLineEdit
-from desktop_ui import make_page,card,label,push
-from ui_controls import CatalogList,SelectionList,ToggleSwitch,confirm_dialog,NumericDoubleSpin,number_stepper
-from ui_icons import icon,badge,application_icon
-from flow_widgets import FlowList,ActionChoice,step_text,SYMBOLS
-from settings import STEP_ACTIONS,routine_steps,step_problem
-from i18n import tr,language
+
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QHBoxLayout,
+    QLineEdit,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
+from desktop_ui import card, label, make_page, push
+from flow_widgets import SYMBOLS, ActionChoice, FlowList, step_text
+from i18n import language, tr
+from settings import STEP_ACTIONS, routine_steps, step_problem
+from ui_controls import (
+    CatalogList,
+    NumericDoubleSpin,
+    SelectionList,
+    ToggleSwitch,
+    confirm_dialog,
+    number_stepper,
+)
+from ui_icons import application_icon, badge, icon
 
 
 class RoutinesPage(QWidget):

@@ -1,20 +1,26 @@
 """Named screen positions, edited inside the page without a capture overlay."""
 import asyncio
-import base64
 import copy
 import math
 import threading
 import uuid
 
-from PySide6.QtCore import Qt, QByteArray, QBuffer, QIODevice, QPointF
+from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, Qt
 from PySide6.QtGui import QColor, QImageReader, QPainter, QPen, QPixmap
-from PySide6.QtWidgets import QApplication,QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLineEdit,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 import mouse_controls
-from desktop_ui import card, label, push, make_page, show_page, PAGE_BUTTONS
-from ui_controls import CatalogList, CountdownOverlay, confirm_dialog
+from desktop_ui import PAGE_BUTTONS, card, label, make_page, push, show_page
 from i18n import tr
 from settings import routine_references
+from ui_controls import CatalogList, CountdownOverlay, confirm_dialog
 from ui_icons import application_icon, application_name, icon
 
 

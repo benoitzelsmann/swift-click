@@ -57,7 +57,7 @@ async def check_for_updates(window):
         if window.closing:
             return
         if release and version_numbers(release[0]) > version_numbers(window.app_version):
-            window.update_status.setText("Version {version} is available.".format(version=release[0]))
+            window.update_status.setText(f"Version {release[0]} is available.")
             window.update_url = release[1]
             window.update_link.show()
         else:
@@ -75,6 +75,7 @@ async def check_for_updates(window):
 def support_report(window):
     """Allowlist technical facts; avoid log text, paths, addresses and target names."""
     from PySide6 import __version__ as qt_version
+
     from i18n import language
     config = window.controller.config
     report = {

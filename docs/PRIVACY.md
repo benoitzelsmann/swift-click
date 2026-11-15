@@ -41,7 +41,8 @@ and activity logs. Contact
 links open the user's browser or email application only when selected.
 
 The app requires no Swift Click account and includes no telemetry or remote
-analytics. The status page is available only through the local loopback interface.
+analytics. The local status page is off by default. Starting Swift Click with
+`--panel` enables it, only through the local loopback interface.
 
 The uninstaller removes the program and keeps preferences and configuration
 backups for reinstallation. To remove them, close Swift Click and delete its

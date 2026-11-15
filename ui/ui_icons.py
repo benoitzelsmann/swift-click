@@ -1,8 +1,18 @@
 """Small vector interface icons and cached native application icons."""
-from PySide6.QtCore import Qt, QRect, QRectF, QPointF, QFileInfo, QSize
-from PySide6.QtGui import QIconEngine, QIcon, QPixmap, QPainter, QPen, QColor, QPainterPath
-from PySide6.QtWidgets import QFileIconProvider, QLabel
 from pathlib import PureWindowsPath
+
+from PySide6.QtCore import QFileInfo, QPointF, QRect, QRectF, QSize, Qt
+from PySide6.QtGui import (
+    QColor,
+    QIcon,
+    QIconEngine,
+    QPainter,
+    QPainterPath,
+    QPen,
+    QPixmap,
+)
+from PySide6.QtWidgets import QFileIconProvider, QLabel
+
 from ui_theme import color as theme_color
 
 _CACHE = {}

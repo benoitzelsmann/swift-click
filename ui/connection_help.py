@@ -3,11 +3,18 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QRectF, QSize, QSettings
+from PySide6.QtCore import QRectF, QSettings, QSize, Qt
 from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout,
-    QSizePolicy, QDialog, QDialogButtonBox, QApplication,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
 )
 
 from app_paths import config_dir

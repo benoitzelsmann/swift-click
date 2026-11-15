@@ -1,6 +1,7 @@
-# Swift Click 3.6.0 compatibility
+# Swift Click 3.7.0 compatibility
 
-3.6.0 is the stable Windows desktop release with an unsigned installer. The following separates implemented
+3.7.0 is a beta for Windows, with an unsigned installer, and for macOS on Apple Silicon, with a disk image
+that is not notarized. 3.5.0 remains the stable Windows release. The following separates implemented
 features, completed checks and hardware qualification still in progress.
 
 | Component | Scope |
@@ -21,14 +22,16 @@ features, completed checks and hardware qualification still in progress.
 | MyWhoosh junctions | Reads the on-screen direction tiles at press time and clicks the matching arrow inside MyWhoosh; tested with MyWhoosh 5.7.0 at 1920 × 1080 |
 | MyWhoosh ERG intensity | Finds the Intensity bar at press time and clicks − or + inside MyWhoosh, 1 to 10 clicks per press; recognised from a MyWhoosh 5.7.0 capture, not yet qualified in a live workout |
 | Mouse | Named physical coordinates, local previews and associated windows; targeted routine clicks verify the window |
-| macOS / Windows ARM | Not available or qualified; a macOS version is in preparation |
+| MyWhoosh link port | TCP 8080, or a free port announced over mDNS when 8080 is taken |
+| macOS | Beta for Apple Silicon (M1 and later, macOS 13 or newer); built and tested automatically, not yet confirmed on a real Mac |
+| Windows ARM | Not available or qualified |
 | Browser extension | Not used |
 
 Five editable timing controls were added in 1.4.0. Existing configurations receive the previous defaults without resetting assignments; active presses retain their snapshots.
 
 ## Completed checks
 
-- 198 automated tests cover gesture boundaries/exclusivity, mute assignment,
+- 276 automated tests cover gesture boundaries/exclusivity, mute assignment,
   multimedia key pairs, migration, saved references, routine editing/reordering,
   cancellation, activation denial, covered clicks and held-key release. Version 3.0
   also covers backup/recovery, catalogue filtering, routine duplication, system

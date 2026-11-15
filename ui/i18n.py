@@ -49,7 +49,13 @@ def tr(text):
 
 def apply_widgets(root):
     """Track canonical source properties so changing language never chains translations."""
-    from PySide6.QtWidgets import QWidget, QLabel, QAbstractButton, QLineEdit, QMessageBox
+    from PySide6.QtWidgets import (
+        QAbstractButton,
+        QLabel,
+        QLineEdit,
+        QMessageBox,
+        QWidget,
+    )
     for widget in [root, *root.findChildren(QWidget)]:
         properties = ["toolTip", "accessibleName", "windowTitle"]
         if widget.property("i18nUserTooltip"):

@@ -1,11 +1,19 @@
 """Dialog that records a Windows keyboard shortcut by pressing it."""
-from PySide6.QtCore import Qt, QEvent
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel
-
-from i18n import tr, apply_widgets
 import sys
-from keyboard_shortcuts import (MODIFIERS, MODIFIER_CODES, shortcut_label, ordered, modifier_labels,
-                                native_key, held_modifiers)
+
+from PySide6.QtCore import QEvent, Qt
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout
+
+from i18n import apply_widgets, tr
+from keyboard_shortcuts import (
+    MODIFIER_CODES,
+    MODIFIERS,
+    held_modifiers,
+    modifier_labels,
+    native_key,
+    ordered,
+    shortcut_label,
+)
 from ui_controls import KeyboardButton
 
 

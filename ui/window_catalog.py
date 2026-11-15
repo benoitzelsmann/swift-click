@@ -1,21 +1,28 @@
 """Reusable named windows, default targets and read-only automatic discovery."""
 import asyncio
-import sys
 import copy
 import re
+import sys
 import time
 import uuid
 from collections import Counter
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLineEdit,QStackedWidget
-from ui_controls import ChoiceGroup
-from desktop_ui import card,label,push,make_page
-from ui_controls import CatalogList,confirm_dialog
-from ui_icons import icon,application_icon,application_name,site_icon,paired_icon
-from i18n import tr,language
-from settings import role_ref,routine_references
+
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLineEdit,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
+
 from browser_tabs import list_tabs, matching_tabs, supported
-from destinations import SITES, website_url, site_host
+from desktop_ui import card, label, make_page, push
+from destinations import SITES, site_host, website_url
+from i18n import language, tr
+from settings import role_ref, routine_references
+from ui_controls import CatalogList, ChoiceGroup, confirm_dialog
+from ui_icons import application_icon, application_name, icon, paired_icon, site_icon
 
 
 def tab_site(title):
@@ -308,6 +315,7 @@ class WindowsPage(QWidget):
         # Browser applications can be configured even when no window is open.
         import os
         from pathlib import Path
+
         from window_actions import Window
         if sys.platform == 'darwin':
             from mac_browser import DEFAULT_BROWSERS

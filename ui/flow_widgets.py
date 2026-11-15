@@ -1,13 +1,16 @@
 from ui_theme import color
+
 """Accessible, reorderable routine nodes with painted connectors."""
 import copy
-from PySide6.QtCore import Qt,QSize,QPointF,QRect,QMimeData,Signal
-from PySide6.QtGui import QColor,QPainter,QPen,QPolygonF,QFont,QDrag
-from PySide6.QtWidgets import QStyledItemDelegate,QAbstractItemView,QApplication
-from ui_controls import SelectionList,KeyboardButton
-from settings import STEP_ACTIONS,step_problem
+
+from PySide6.QtCore import QMimeData, QPointF, QRect, QSize, Qt, Signal
+from PySide6.QtGui import QColor, QDrag, QFont, QPainter, QPen, QPolygonF
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QStyledItemDelegate
+
 from i18n import tr
-from ui_icons import icon,action_icon
+from settings import STEP_ACTIONS, step_problem
+from ui_controls import KeyboardButton, SelectionList
+from ui_icons import action_icon, icon
 
 SYMBOLS = {"open":"open","activate":"window","close":"close","minimize":"minimize",
            "switch":"switch","click":"click","seek_back":"back","seek_forward":"forward","wait":"clock"}

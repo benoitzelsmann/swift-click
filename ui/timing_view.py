@@ -1,9 +1,11 @@
 """Editable gesture thresholds and repetition intervals, saved as one transaction."""
 import copy
+
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QGridLayout, QHBoxLayout
-from desktop_ui import label,push
-from settings import TIMING_DEFAULTS,TIMING_LIMITS
+from PySide6.QtWidgets import QFrame, QGridLayout, QHBoxLayout, QVBoxLayout
+
+from desktop_ui import label, push
+from settings import TIMING_DEFAULTS, TIMING_LIMITS
 from ui_controls import NumericSpin, number_stepper
 
 

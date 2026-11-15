@@ -1,15 +1,43 @@
 """Shared controls with keyboard-only focus cues and an accessible switch."""
 
-from PySide6.QtCore import Qt, QSize, QRect, QPoint, QRectF, QVariantAnimation, QEasingCurve, Signal
+from PySide6.QtCore import (
+    QEasingCurve,
+    QPoint,
+    QRect,
+    QRectF,
+    QSize,
+    Qt,
+    QVariantAnimation,
+    Signal,
+)
+from PySide6.QtGui import QColor, QCursor, QPainter, QPen
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QAbstractSpinBox,
+    QApplication,
+    QCheckBox,
+    QDoubleSpinBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLayout,
+    QLineEdit,
+    QListWidget,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QSpinBox,
+    QStyle,
+    QStyledItemDelegate,
+    QStyleOptionButton,
+    QStyleOptionViewItem,
+    QStylePainter,
+    QVBoxLayout,
+    QWidget,
+)
+
 from i18n import apply_widgets
 from ui_theme import color
-from PySide6.QtGui import QColor, QPainter, QCursor, QPen
-from PySide6.QtWidgets import (
-    QPushButton, QCheckBox, QStyleOptionButton, QStylePainter, QStyle,
-    QStyledItemDelegate, QStyleOptionViewItem, QListWidget, QAbstractItemView,
-    QMessageBox, QFrame, QLabel, QVBoxLayout, QApplication,QHBoxLayout,QWidget,QSpinBox,QDoubleSpinBox,QAbstractSpinBox,QLineEdit,
-    QLayout, QSizePolicy,
-)
 
 
 class KeyboardButton(QPushButton):

@@ -1,31 +1,33 @@
 """Qt views for connections, controller bindings and dashboard status."""
 
-from pathlib import Path
 import copy
+from pathlib import Path
+
 from PySide6.QtCore import (
-    Qt,
     QRectF,
-    Signal,
     QSize,
+    Qt,
+    Signal,
 )
-from PySide6.QtGui import QPainter, QPixmap, QFont, QFontMetrics, QColor
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPixmap
 from PySide6.QtWidgets import (
-    QWidget,
+    QButtonGroup,
     QFrame,
-    QLabel,
-    QVBoxLayout,
-    QHBoxLayout,
     QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QScrollArea,
+    QSizePolicy,
     QStackedWidget,
     QTextEdit,
-    QButtonGroup,
-    QSizePolicy,
-    QScrollArea,
+    QVBoxLayout,
+    QWidget,
 )
-from settings import ACTIONS, ASSIGNABLE, REPEATABLE, GESTURES, GESTURE_NAMES, action_id
-from ui_controls import KeyboardButton, ToggleSwitch, SelectionList, GestureCheck
-from i18n import tr, language
-from ui_icons import action_icon,icon
+
+from i18n import language, tr
+from settings import ACTIONS, ASSIGNABLE, GESTURE_NAMES, GESTURES, REPEATABLE, action_id
+from ui_controls import GestureCheck, KeyboardButton, SelectionList, ToggleSwitch
+from ui_icons import action_icon, icon
 
 ACTION_GROUPS = {
     "MyWhoosh": ("shift_up", "shift_down", "whoosh_left", "whoosh_right",
@@ -55,7 +57,8 @@ MODEL_TITLES = {"click_v2_right": "Zwift Click V2 · Right", "click_v1": "Zwift 
 
 def key_name(key):
     return {"plus": "+", "minus": "−"}.get(key, key.upper())
-from ui_theme import stylesheet, color
+from ui_theme import color, stylesheet
+
 STYLE = stylesheet("light")
 
 # Inside a group the context is already given, so tiles keep short names and clear symbols.
@@ -581,7 +584,6 @@ class ControllerEditor(QWidget):
         for action, used in self.usage_labels.items():
             used.set_uses(self.uses(action, detailed=True), self.usage_text(action))
         for group, button in self.category_buttons.items():
-            allowed = [a for a in ACTION_GROUPS[group] if self.field.gesture != "hold" or a in REPEATABLE]
             button.setText(tr(group))
         self.update_pending()
 
@@ -790,7 +792,7 @@ def scroll_page(page):
 
 
 def build_ui(w):
-    from connection_help import GuidePanel, Disclosure, MYWHOOSH_STEPS, CONTROLLER_STEPS
+    from connection_help import CONTROLLER_STEPS, MYWHOOSH_STEPS, Disclosure, GuidePanel
 
     shell = QWidget()
     shell.setObjectName("shell")
@@ -877,7 +879,7 @@ def build_ui(w):
         row.addWidget(picture)
         row.addSpacing(10)
         row.addWidget(label(name, size=16), 1)
-        state = label("Not connected" if index == 0 else "Not connected")
+        state = label("Not connected")
         state.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         row.addWidget(state)
         if index == 0:
@@ -1032,7 +1034,7 @@ def build_ui(w):
 
     from about_view import build_about_pages
     build_about_pages(w)
-    from automation_view import WindowsPage, RoutinesPage
+    from automation_view import RoutinesPage, WindowsPage
     w.windows_page = WindowsPage(w)
     w.routines_page = RoutinesPage(w)
     w.pages.addWidget(w.windows_page)

@@ -1,10 +1,18 @@
 """Accessible language buttons with flags painted at the display's native DPI."""
-from PySide6.QtCore import Qt, Signal, QRectF, QLineF, QLocale
-from PySide6.QtGui import QPainter, QPainterPath, QColor, QPen
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QButtonGroup, QDialog, QLabel, QPushButton
+from PySide6.QtCore import QLineF, QLocale, QRectF, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ui_controls import KeyboardButton
 from i18n import LANGUAGES
+from ui_controls import KeyboardButton
 
 
 class FlagButton(KeyboardButton):

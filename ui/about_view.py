@@ -7,9 +7,9 @@ from urllib.parse import quote
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
-from language_picker import LanguagePicker
 
 from i18n import language
+from language_picker import LanguagePicker
 
 
 def metadata():
@@ -26,12 +26,12 @@ def open_link(url):
 
 
 def build_about_pages(w):
-    from desktop_ui import make_page, card, label, push, scroll_page
+    from desktop_ui import card, label, make_page, push, scroll_page
     info = metadata()
     page, box = make_page("General")
     surface, content = card()
     box.addWidget(surface)
-    from PySide6.QtWidgets import QHBoxLayout, QButtonGroup
+    from PySide6.QtWidgets import QButtonGroup, QHBoxLayout
     appearance_row = QHBoxLayout()
     appearance_row.addWidget(label("Appearance", size=16), 1)
     w.appearance_group = QButtonGroup(w)
@@ -58,8 +58,8 @@ def build_about_pages(w):
     w.timing_settings=TimingSettings(w)
     box.addWidget(w.timing_settings)
     from connection_help import Disclosure
-    from ui_controls import NumericSpin, number_stepper
     from navigation_settings import save_navigation
+    from ui_controls import NumericSpin, number_stepper
     advanced = Disclosure("Advanced controls")
     advanced.body.addWidget(label("MyWhoosh directions", size=16))
     advanced.body.addWidget(label("Network works in the background. Keyboard needs MyWhoosh in front.", "muted"))
